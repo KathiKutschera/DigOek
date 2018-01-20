@@ -88,6 +88,23 @@ export class Application {
           realm: 'MyRESTservice'
       }));
 
+      subpath.use( (req, res, next) => {
+        // get userdetails to be easy available later
+        this.users.getUserDetail (req.auth)
+        // .then ( result => req['restuser'] = result )
+        .then ( result => {
+          console.log (`set req.restuser: ${JSON.stringify (result)}`);
+          req['restuser'] = result;
+          next(); // <-- important!
+        })
+        .catch ( err => {
+          console.error (`Error getting user details from DB: ${err}`);
+          next(); // <-- important!
+        });
+        // from here on use req.restuser.isAdmin (or other fields)
+        // or simpler: users.userIsAdmin (req) : boolean
+      });
+
     swagger.addModels(models);
 
     /////////////////////////////////////////////////////

@@ -56,3 +56,8 @@ export interface Auth {
   user: string,
   passwort: string
 }
+
+export interface UserDetails {
+  surname: string,
+  isAdmin: boolean
+}

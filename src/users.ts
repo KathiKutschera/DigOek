@@ -77,7 +77,7 @@ export class Users {
     },
     'action': (req,res) => {
       let wantXML = req.headers.hasOwnProperty ("accept") && (req.headers.accept == "application/xml");
-      this.doGetUsers (req.auth, req.query.username, req.query.limit, req.query.offset)
+      this.doGetUsers (req, req.query.username, req.query.limit, req.query.offset)
       .then (result => {
         if (wantXML) {
           // reorganize json
@@ -312,23 +312,23 @@ export class Users {
   // }
 
 
-  public doGetUsers (auth: Types.Auth, username: string, limit: number, offset: number) : Promise<Types.User[]> {
+  public doGetUsers (req: Request, username: string, limit: number, offset: number) : Promise<Types.User[]> {
     return new Promise ((resolve, reject) => {
       // if (!auth) {
       //   // this cannot happen
       //   reject ("No permissions");
       //   return;
       // }
-      if (this.userIsAdmin (auth.user)) {
+      if (this.userIsAdmin (req)) {
         // OK
       } else {
         // only provide own data
-        if (username && username != auth.user) {
+        if (username && username != req.auth.user) {
           reject ("Not your data");
           return;
         }
         // restrict to own data
-        username = auth.user;
+        username = req.auth.user;
       }
       let sql = "SELECT * FROM users";
       let params: [string | number] = [limit || this.defaultLimit, offset || 0];
@@ -471,12 +471,39 @@ export class Users {
 
   ///////////////////////////////////////////////
   ///
-  ///  password check
+  ///  password check, admin check
 
-  public userIsAdmin (username) : boolean {
-    // let i = this.findFakedUserByName(username);
-    // return (i >= 0) && this.fakedUserDB[i].isadmin;
-    return true;
+  public userIsAdmin (req) : boolean {
+    if (req.hasOwnProperty ('restuser') && req['restuser'].hasOwnProperty( ("isAdmin"))) {
+      console.log (`userIsAdmin: ${req['restuser']['isAdmin']}`);
+      return req['restuser']['isAdmin'];
+    } else {
+      console.log (`userIsAdmin: false`);
+      return false;
+    }
+  }
+
+  public getUserDetail (auth : Types.Auth) : Promise<Types.UserDetails> {
+    return new Promise ((resolve, reject) => {
+      // do some db access
+      // Fake it!
+      // let i = this.findFakedUserByName(auth.user);
+      let sql = "SELECT surname, isadmin FROM users where pk_userName = $1";
+      let params: [string | number] = [auth.user];
+      this.pool
+      .query (sql, params)
+      .then (res => {
+        if(res.rows.length == 1){
+          resolve ({surname: res.rows[0].surname, isAdmin: res.rows[0].isadmin});
+        } else {
+          reject("No such user.");
+        }
+      })
+      .catch (error => {
+        console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+          reject(error.toString());
+      });
+    });
   }
 
   public authorizer = (user, password, authorize) => {
