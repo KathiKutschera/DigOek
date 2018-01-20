@@ -34,7 +34,7 @@ export class Users {
     swagger
     .addGet (this.getUsers)
     .addGet (this.getUserById)
-    .addPut (this.putUserById)
+    .addPut (this.putUserByName)
     .addPost (this.postUserWithQueryParameter)
     .addPost (this.postUsers)
     .addDelete (this.deleteUserById)
