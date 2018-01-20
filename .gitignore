@@ -1,0 +1,11 @@
+*~
+*.bak
+node_modules
+.env
+*.tar.gz
+*.tgz
+*.tar.xz
+backup
+logs
+*.log
+*.retry

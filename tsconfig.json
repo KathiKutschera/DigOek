@@ -1,0 +1,31 @@
+{
+    "version": "1.5.0-alpha",
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "outDir": "dist",
+        "sourceMap": true,
+        "declaration": false,
+        "noImplicitAny": false,
+        "removeComments": false,
+        "noLib": false,
+        "preserveConstEnums": true,
+        "suppressImplicitAnyIndexErrors": true
+    },
+    "files": [
+        "./node_modules/@types/node/index.d.ts",
+        "./node_modules/@types/dotenv/index.d.ts",
+        "./node_modules/@types/pg/index.d.ts",
+        "./node_modules/@types/mocha/index.d.ts"
+    ],
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "node_modules"
+    ],
+    "compileOnSave": true,
+    "atom": {
+        "rewriteTsconfig": true
+    }
+}
