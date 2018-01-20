@@ -33,8 +33,8 @@ export class Users {
   public mount () {
     swagger
     .addGet (this.getUsers)
-    .addGet (this.getUserById)
-    .addPut (this.putUserByName)
+    .addGet (this.getUserByUserName)
+    .addPut (this.putUserByUserName)
     .addPost (this.postUserWithQueryParameter)
     .addPost (this.postUsers)
     .addDelete (this.deleteUserById)
@@ -96,34 +96,34 @@ export class Users {
   };
 
 
-  public getUserById = {
+  public getUserByUserName = {
     'spec': {
       description : "Operations about Users",
-      path : "/users/{id}",
+      path : "/users/{username}",
       method: "GET",
-      summary : "Get one Users",
+      summary : "Get one User",
       notes : "Returns one User",
       type : "user",
-      nickname : "getUserById",
+      nickname : "getUserByUserName",
       produces : ["application/json"],
       parameters : [
-          swagger.params.path("id", "ID of User", "long")
+          swagger.params.path("username", "UserName of User", "string")
         ],
       responseMessages : [
-        { "code": 400, "message": 'invalid id' },
+        { "code": 400, "message": 'invalid name' },
         // { "code": 404, "message": 'id not found' },
         { "code": 500, "message": 'internal server error'}
       ]
     },
     'action': (req,res) => {
-      if (!req.params.id) {
-        throw swagger.errors.invalid('id');
+      if (!req.params.username) {
+        throw swagger.errors.invalid('username');
       }
-      var id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        throw swagger.errors.invalid('id');
-      }
-      this.doGetUserById (req.auth, id)
+      // var id = parseInt(req.params.id);
+      // if (isNaN(id)) {
+      //   throw swagger.errors.invalid('id');
+      // }
+      this.doGetUserByUserName (req)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
@@ -132,21 +132,19 @@ export class Users {
     }
   };
 
-  public putUserByName = {
+  public putUserByUserName = {
     'spec': {
       description : "Operations about Users",
-      path : "/users/{id}",
+      path : "/users/{username}",
       method: "PUT",
       summary : "Set one User",
-      notes : "Returns id",
-      type : "id",
+      notes : "Returns username",
+      type : "username",
       nickname : "putUser",
       produces : ["application/json"],
       parameters : [
-        // swagger.params.path ("id", "ID of User", "long"),
-        swagger.params.query("username", "Name of new User", "string", true),
-        swagger.params.query("passwordhash", "hashed password", "string", false),
-        swagger.params.query("isadmin", "only for admins", "boolean", false),
+        swagger.params.path ("username", "UserName of User", "string"),
+        swagger.params.body("body", 'User as JSON string', "string")
       ],
       responseMessages : [
         { "code": 400, "message": 'invalid parameter' },
@@ -155,20 +153,10 @@ export class Users {
       ]
     },
     'action': (req,res) => {
-      if (!req.params.id) {
-        throw swagger.errors.invalid('id');
-      }
-      let id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        throw swagger.errors.invalid('id');
-      }
-      if (!req.query.username) {
+      if (!req.params.username) {
         throw swagger.errors.invalid('username');
       }
-      if (!req.query.passwordhash) {
-        throw swagger.errors.invalid('passwordhash');
-      }
-      this.doPutUserById (req.auth, id, req.query.username, req.query.passwordhash, req.query.isadmin || false)
+      this.doPutUserByUserName (req)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
@@ -314,11 +302,6 @@ export class Users {
 
   public doGetUsers (req: Request, username: string, limit: number, offset: number) : Promise<Types.User[]> {
     return new Promise ((resolve, reject) => {
-      // if (!auth) {
-      //   // this cannot happen
-      //   reject ("No permissions");
-      //   return;
-      // }
       if (this.userIsAdmin (req)) {
         // OK
       } else {
@@ -346,62 +329,200 @@ export class Users {
         console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
         reject (error.toString());
       });
-
-
-
-
-      // if (username) {
-      //   let i = this.findFakedUserByName(username);
-      //   if (i >= 0) {
-      //     resolve ([this.fakedUserDB[i]])
-      //   } else {
-      //     reject ("No such user");
-      //   }
-      // } else {
-      //   resolve (this.fakedUserDB);
-      // }
     });
   }
 
-  public doGetUserById (auth: Types.Auth, id: number) : Promise<Types.User> {
+  public doGetUserByUserName (req: Request) : Promise<Types.User> {
     return new Promise ((resolve, reject) => {
-      // TODO: check auth
-      let i = this.findFakedUserById (id);
-      if (i >= 0) {
-        resolve (this.fakedUserDB[i])
-      } else {
-        reject ("No such user");
-      }
-    });
-  }
-
-  public doPutUserById (auth: Types.Auth, id: number, username: string, passwordhash: string, isadmin: boolean) : Promise<Types.Id> {
-    return new Promise ((resolve, reject) => {
-      if (!auth) {
-        // this cannot happen
-        reject ("No permissions");
-        return;
-      }
-      if (this.userIsAdmin (auth.user)) {
+      // req.auth, req.params.username
+      if (this.userIsAdmin (req)) {
         // OK
       } else {
-        // ony provide own data
-        if (username && username != auth.user) {
+        // only provide own data
+        if (req.params.username && req.params.username != req.auth.user) {
           reject ("Not your data");
           return;
         }
-        isadmin = false; // :->
+        // // restrict to own data
+        // username = req.auth.user;
       }
-      let encoded = crypto.createHash('sha256').update(passwordhash).digest('base64');
-      let i = this.findFakedUserById (id);
-      if (i >= 0) {
-        this.fakedUserDB[i] = {id: id, username: username, passwordhash: encoded, isadmin: isadmin};
-      } else {
-        this.fakedUserDB.push ({id: id, username: username, passwordhash: encoded, isadmin: isadmin});
-      }
-      resolve ({id: id});
+      let sql = "SELECT * FROM users where pk_username = $1";
+      let params: [string | number] = [req.params.username];
+      this.pool
+      .query (sql, params)
+      .then (res => {
+        if(res.rows.length == 1){
+          resolve (res.rows);
+        } else {
+            reject ("No such user");
+          }
+      })
+      .catch (error => {
+        console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+        reject (error.toString());
+      });
     });
   }
+
+  public doPutUserByUserName (req: Request) : Promise<Types.Id> {
+    return new Promise ((resolve, reject) => {
+      if (this.userIsAdmin (req)) {
+        // OK
+      } else {
+        // only provide own data
+        if (req.params.username && req.params.username != req.auth.user) {
+          reject ("Not your data");
+          return;
+        }
+        req.body.isadmin = false;
+      }
+
+      let requiredFields = ["email", "name", "surname", "billingaddress", "deliveryaddress"];
+
+      for(let i = 0; i < requiredFields.length; i++){
+        if(! req.body.hasOwnProperty(requiredFields[i])){
+          reject(`Missing field: ${requiredFields[i]}` );
+          return;
+        }
+      }
+
+      let sql1 = "UPDATE users SET";
+      let sql2 = "INSERT INTO users(";
+      let params = [];
+
+      let allFields = ["pwhash", "email", "isadmin", "name", "surname", "companyname", "billingaddress", "deliveryaddress", "vat", "nameoncc", "creditcardnr", "validyear", "validmonth", "ccv"];
+      let i = 0;
+      for(; i < allFields.length; i++){
+        if(req.body.hasOwnProperty(allFields[i])){
+          if(i != 0){
+            sql1 += `, `;
+            sql2 += `, `;
+          }
+          sql1 += ` ${allFields[i]} = $${i+1}` ;
+          sql2 += ` ${allFields[i]}`;
+          if(allFields[i] == "pwhash"){
+            params.push(crypto.createHash('sha256').update(req.body[allFields[i]]).digest('base64'));
+          } else {
+            params.push(req.body[allFields[i]]);
+          }
+        }
+      }
+
+      sql2 += `) SELECT `;
+      for(let j = 0; j < i; j++){
+        if(j != 0){
+          sql2 += `, `;
+        }
+        sql2 += `$${j+1}`;
+      }
+
+      sql1 += ` WHERE pk_username = $${i+1}`;
+      sql2 += ` WHERE NOT EXISTS (SELECT 1 FROM users WHERE pk_username = $${i+1})`;
+
+      params.push(req.params.username);
+
+      console.log(sql1);
+      console.log(sql2);
+      console.log(JSON.stringify(params));
+
+      this.pool
+        .query(sql1, params)
+        .catch (error => {
+          console.error(sql1 + " with params "+JSON.stringify (params) + ": " + error.toString());
+          reject (error.toString());
+        })
+        .then ( _ => this.pool.query (sql2, params))
+        .catch ( error => {
+          console.error(sql2 + " with params "+JSON.stringify (params) + ": " + error.toString());
+          reject (error.toString());
+        })
+        .then ( _ => resolve ({"pk_username": req.params.username}))
+      });
+    }
+
+      // let sql1 = "UPDATE users SET propertyTypeName = $2, propertyTypeURI = $3, propertyTypeType = $4, propertyTypeSchema = $5, propertyTypeUnit = $6, propertyTypeDescription = $7 WHERE propertyTypeId = $1; ";
+      // let sql2 = "INSERT INTO propertyTypes (propertyTypeId, propertyTypeName, propertyTypeURI, propertyTypeType, propertyTypeSchema, propertyTypeUnit, propertyTypeDescription) SELECT $1, $2, $3, $4, $5, $6, $7 WHERE NOT EXISTS (SELECT 1 FROM PropertyTypes WHERE propertyTypeId = $1)";
+      // let params = [propertytypeid, propertytypename,propertytypeuri, propertytypetype, propertytypeschema, propertytypeunit, propertytypedescription];
+
+
+
+      // username, pwhash, email, isadmin, name, surname,
+      // companyname, billingaddress, deliveryaddress,
+      // vat, nameoncc, creditcardnr, validyear,
+      // validmonth, ccv
+
+
+
+      // req.params.username, encoded, req.body.email
+      // isadmin, req.body.name, req.body.surname,
+      // req.body.companyname, req.body.billingaddress,
+      // req.body.deliveryaddress, req.body.vat,
+      // req.body.nameoncc, req.body.creditcardnr,
+      // req.body.validyear, req.body.validmonth,
+      // req.body.ccv
+
+      // console.log("req.body" + JSON.stringify(req.body));
+
+
+   //   let sql1 = "UPDATE PropertyTypes SET propertyTypeName = $2, propertyTypeURI = $3, propertyTypeType = $4, propertyTypeSchema = $5, propertyTypeUnit = $6, propertyTypeDescription = $7 WHERE propertyTypeId = $1; ";
+   //   let sql2 = "INSERT INTO propertyTypes (propertyTypeId, propertyTypeName, propertyTypeURI, propertyTypeType, propertyTypeSchema, propertyTypeUnit, propertyTypeDescription) SELECT $1, $2, $3, $4, $5, $6, $7 WHERE NOT EXISTS (SELECT 1 FROM PropertyTypes WHERE propertyTypeId = $1)";
+   //   let params = [propertytypeid, propertytypename,propertytypeuri, propertytypetype, propertytypeschema, propertytypeunit, propertytypedescription];
+   //   // Can I not simply do an query (sql1 + spl2) ?? No: error: cannot insert multiple commands into a prepared statement
+   //   this.pool
+   //   .query(sql1, params)
+   //   .catch (error => {
+   //     console.error(sql1 + " with params "+JSON.stringify (params) + ": " + error.toString());
+   //     reject (error.toString());
+   //   })
+   //   .then ( _ => this.pool.query (sql2, params))
+   //   .catch ( error => {
+   //     console.error(sql2 + " with params "+JSON.stringify (params) + ": " + error.toString());
+   //     reject (error.toString());
+   //   })
+   //   .then ( _ => resolve ({"id": propertytypeid}))
+   // });
+   //
+   //
+   //
+   //
+   //    let sql = "SELECT * FROM users";
+   //    let params: [string | number] = [limit || this.defaultLimit, offset || 0];
+   //    if (username) {
+   //      sql += " where pk_userName = $3";
+   //      params.push (username);
+   //    }
+   //    sql += "  LIMIT $1 OFFSET $2";
+   //    this.pool
+   //    .query (sql, params)
+   //    .then (res => {
+   //      resolve (res.rows);
+   //    })
+   //    .catch (error => {
+   //      console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+   //      reject (error.toString());
+   //    });
+    // });
+
+    //   if (this.userIsAdmin (auth.user)) {
+    //     // OK
+    //   } else {
+    //     // ony provide own data
+    //     if (username && username != auth.user) {
+    //       reject ("Not your data");
+    //       return;
+    //     }
+    //     isadmin = false; // :->
+    //   }
+    //   let encoded = crypto.createHash('sha256').update(passwordhash).digest('base64');
+    //   let i = this.findFakedUserById (id);
+    //   if (i >= 0) {
+    //     this.fakedUserDB[i] = {id: id, username: username, passwordhash: encoded, isadmin: isadmin};
+    //   } else {
+    //     this.fakedUserDB.push ({id: id, username: username, passwordhash: encoded, isadmin: isadmin});
+    //   }
+    //   resolve ({id: id});
+    // });
+  // }
 
   public async doPostUsers (auth: Types.Auth, users: Types.User[]) : Promise<Types.Id[]> {
       if (!auth) {
