@@ -29,7 +29,7 @@ export class Orders {
     swagger
     .addGet (this.getOrders)
     .addGet (this.getOrdersByID)
-    // .addPut (this.putUserById)
+    .addPost (this.postOrders)
     // .addPost (this.postUserWithQueryParameter)
     // .addPost (this.postUsers)
     // .addDelete (this.deleteUserById)
@@ -118,6 +118,39 @@ export class Orders {
     }
   };
 
+  
+    public postOrders = {
+    'spec': {
+      description : "Operations about Users",
+      path : "/orders",
+      method: "POST",
+      summary : "Create an order",
+      notes : "Returns orderID",
+      type : "order",
+      nickname : "PostOrders",
+      produces : ["application/json"],
+      parameters : [
+        swagger.params.path ("username", "UserName of User", "string"), 
+        swagger.params.body("body", 'Order as JSON string', "string")
+      ],
+      responseMessages : [
+        { "code": 400, "message": 'invalid parameter' },
+        // { "code": 404, "message": 'id not found' },
+        { "code": 500, "message": 'internal server error'}
+      ]
+    },
+    'action': (req,res) => {
+      if (!req.params.username) {
+        throw swagger.errors.invalid('username');
+      }
+      this.doPostOrders (req.auth, req.params.id)
+      .then (result => res.send(JSON.stringify(result)))
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
 
   ///////////////////////////////////////////////
   ///
@@ -141,7 +174,7 @@ export class Orders {
   }
   
   
-   public doGetOrdersByID (auth: Types.Auth, id: number) : Promise<Types.Product> {
+   public doGetOrdersByID (auth: Types.Auth, id: number) : Promise<Types.Order> {
     return new Promise ((resolve, reject) => {
       // req.auth, req.params.username
       let sql = "SELECT * FROM orders where pk_orderid = $1";
@@ -163,3 +196,71 @@ export class Orders {
   }
 
 }
+
+
+  public doPostOrders (auth: Types.Auth, id: number) : Promise<Types.Id> {
+   
+   return new Promise ((resolve, reject) => {
+    
+      let requiredFields = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+
+      for(let i = 0; i < requiredFields.length; i++){
+        if(! req.body.hasOwnProperty(requiredFields[i])){
+          reject(`Missing field: ${requiredFields[i]}` );
+          return;
+        }
+      }
+
+      //let sql1 = "UPDATE users SET";
+      let sql2 = "INSERT INTO orders(";
+      let params = [];
+
+      let allFields = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+      let i = 0;
+      for(; i < allFields.length; i++){
+        if(req.body.hasOwnProperty(allFields[i])){
+          if(i != 0){
+          //  sql1 += `, `;
+            sql2 += `, `;
+          }
+        //  sql1 += ` ${allFields[i]} = $${i+1}` ;
+          sql2 += ` ${allFields[i]}`;
+         // if(allFields[i] == "pwhash"){
+          //  params.push(crypto.createHash('sha256').update(req.body[allFields[i]]).digest('base64'));
+          //} else {
+            params.push(req.body[allFields[i]]);
+          //}
+        }
+      }
+
+      sql2 += `) VALUES `;
+      for(let j = 0; j < i; j++){
+        if(j != 0){
+          sql2 += `, `;
+        }
+        sql2 += `$${j+1}`;
+      }
+
+   //   sql1 += ` WHERE pk_username = $${i+1}`;
+   //   sql2 += ` WHERE NOT EXISTS (SELECT 1 FROM users WHERE pk_username = $${i+1})`;
+
+      params.push(req.params.username);
+
+      console.log(sql1);
+      console.log(sql2);
+      console.log(JSON.stringify(params));
+
+      this.pool
+        .query(sql1, params)
+        .catch (error => {
+          console.error(sql1 + " with params "+JSON.stringify (params) + ": " + error.toString());
+          reject (error.toString());
+        })
+        .then ( _ => this.pool.query (sql2, params))
+        .catch ( error => {
+          console.error(sql2 + " with params "+JSON.stringify (params) + ": " + error.toString());
+          reject (error.toString());
+        })
+        .then ( _ => resolve ({"pk_username": req.params.username}))
+      });
+    } 

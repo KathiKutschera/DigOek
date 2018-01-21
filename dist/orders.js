@@ -2,6 +2,8 @@
 // admin-related
 Object.defineProperty(exports, "__esModule", { value: true });
 const swagger = require("swagger-node-express");
+// shared datatypes
+const Types = require("./types");
 class Orders {
     constructor(pool, users) {
         this.pool = pool;
@@ -80,12 +82,44 @@ class Orders {
                 }));
             }
         };
+        this.postOrders = {
+            'spec': {
+                description: "Operations about Users",
+                path: "/orders",
+                method: "POST",
+                summary: "Create an order",
+                notes: "Returns orderID",
+                type: "order",
+                nickname: "PostOrders",
+                produces: ["application/json"],
+                parameters: [
+                    swagger.params.path("username", "UserName of User", "string"),
+                    swagger.params.body("body", 'Order as JSON string', "string")
+                ],
+                responseMessages: [
+                    { "code": 400, "message": 'invalid parameter' },
+                    // { "code": 404, "message": 'id not found' },
+                    { "code": 500, "message": 'internal server error' }
+                ]
+            },
+            'action': (req, res) => {
+                if (!req.params.username) {
+                    throw swagger.errors.invalid('username');
+                }
+                this.doPostOrders(req.auth, req.params.id)
+                    .then(result => res.send(JSON.stringify(result)))
+                    .catch(error => res.status(500).send({
+                    "code": 500,
+                    "message": error
+                }));
+            }
+        };
     }
     mount() {
         swagger
             .addGet(this.getOrders)
-            .addGet(this.getOrdersByID);
-        // .addPut (this.putUserById)
+            .addGet(this.getOrdersByID)
+            .addPost(this.postOrders);
         // .addPost (this.postUserWithQueryParameter)
         // .addPost (this.postUsers)
         // .addDelete (this.deleteUserById)
@@ -136,4 +170,6 @@ class Orders {
     }
 }
 exports.Orders = Orders;
+doPostOrders(auth, Types.Auth, id, number);
+Promise < Types.Id > {};
 //# sourceMappingURL=orders.js.map
