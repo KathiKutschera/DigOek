@@ -108,8 +108,7 @@ export class Products {
       if (isNaN(id)) {
         throw swagger.errors.invalid('id');
       }
-	
-      this.doGetProductByID (req.auth, id)
+      this.doGetProductByID (req.auth, req.params.id)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
