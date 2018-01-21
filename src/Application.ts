@@ -22,6 +22,7 @@ import * as Types from "./types";
 import * as models from "./models";
 
 import { Users } from "./users";
+import { Register } from './register';
 import { Products } from "./products";
 import { Orders } from "./orders";
 
@@ -120,6 +121,8 @@ export class Application {
 
     // users is special as it is needed for auth
     this.users.mount();
+    // also register is special
+    new Register(this.pool, this.users, this.app).mount();
 
     // in general:
     // pool to access db
@@ -153,15 +156,6 @@ export class Application {
       license: "Apache 2.0",
       licenseUrl: "http://www.apache.org/licenses/LICENSE-2.0.html"
     });
-
-    /*
-    swagger.setAuthorizations({
-      apiKey: {
-       type: "apiKey",
-       passAs: "header"
-      }
-    });
-    */
 
     // Configures the app's base path and api version.
     swagger.configureSwaggerPaths("", "api-docs", "")

@@ -137,101 +137,61 @@ class Users {
                 }));
             }
         };
-        this.postUserWithQueryParameter = {
+        // public postUsers = {
+        //   'spec': {
+        //     description : "Operations about Users",
+        //     path : "/users",
+        //     method: "POST",
+        //     summary : "Add a lot of users",
+        //     notes : "Returns an array of ids",
+        //     type : "array",
+        //     items: {
+        //       $ref: "id"
+        //     },
+        //     nickname : "postUser",
+        //     produces : ["application/json"],
+        //     parameters : [
+        //       swagger.params.body("body", 'Array of users as JSON string', "string")
+        //     ],
+        //     responseMessages : [
+        //       { "code": 400, "message": 'invalid parameter' },
+        //       // { "code": 404, "message": 'id not found' },
+        //       { "code": 500, "message": 'internal server error'}
+        //     ]
+        //   },
+        //   'action': (req,res) => {
+        //     this.doPostUsers (req.auth, req.body)
+        //     .then (result => res.send(JSON.stringify(result)))
+        //     .catch (error => res.status(500).send ({
+        //        "code": 500,
+        //        "message": error
+        //     }))
+        //   }
+        // };
+        this.deleteUserByUserName = {
             'spec': {
                 description: "Operations about Users",
-                path: "/users/query",
-                method: "POST",
-                summary: "Add a new User",
-                notes: "Returns UserId",
-                type: "id",
-                nickname: "postUserWithQueryParameter",
-                produces: ["application/json"],
-                parameters: [
-                    swagger.params.query("username", "Name of new User", "string", true),
-                    swagger.params.query("passwordhash", "hashed password", "string", false),
-                    swagger.params.query("isadmin", "only for admins", "boolean", false),
-                ],
-                responseMessages: [
-                    { "code": 400, "message": 'invalid parameter' },
-                    // { "code": 404, "message": 'id not found' },
-                    { "code": 500, "message": 'internal server error' }
-                ]
-            },
-            'action': (req, res) => {
-                if (!req.query.username) {
-                    throw swagger.errors.invalid('username');
-                }
-                if (!req.query.passwordhash) {
-                    throw swagger.errors.invalid('passwordhash');
-                }
-                this.doPostUsers(req.auth, [{ username: req.query.username, passwordhash: req.query.passwordhash, isadmin: req.query.isadmin || false }])
-                    .then(result => res.send(JSON.stringify(result[0])))
-                    .catch(error => res.status(500).send({
-                    "code": 500,
-                    "message": error
-                }));
-            }
-        };
-        this.postUsers = {
-            'spec': {
-                description: "Operations about Users",
-                path: "/users",
-                method: "POST",
-                summary: "Add a lot of users",
-                notes: "Returns an array of ids",
-                type: "array",
-                items: {
-                    $ref: "id"
-                },
-                nickname: "postUser",
-                produces: ["application/json"],
-                parameters: [
-                    swagger.params.body("body", 'Array of users as JSON string', "string")
-                ],
-                responseMessages: [
-                    { "code": 400, "message": 'invalid parameter' },
-                    // { "code": 404, "message": 'id not found' },
-                    { "code": 500, "message": 'internal server error' }
-                ]
-            },
-            'action': (req, res) => {
-                this.doPostUsers(req.auth, req.body)
-                    .then(result => res.send(JSON.stringify(result)))
-                    .catch(error => res.status(500).send({
-                    "code": 500,
-                    "message": error
-                }));
-            }
-        };
-        this.deleteUserById = {
-            'spec': {
-                description: "Operations about Users",
-                path: "/users/{id}",
+                path: "/users/{username}",
                 method: "DELETE",
                 summary: "Delete a single User by ID",
                 notes: "Returns number of deleted Users",
                 type: "count",
-                nickname: "deleteUserById",
+                nickname: "deleteUserByUserName",
                 produces: ["application/json"],
                 parameters: [
-                    swagger.params.path("id", "ID of User", "long")
+                    swagger.params.path("username", "UserName of User", "string")
                 ],
                 responseMessages: [
-                    { "code": 400, "message": 'invalid id' },
+                    { "code": 400, "message": 'invalid username' },
                     // { "code": 404, "message": 'id not found' },
                     { "code": 500, "message": 'internal server error' }
                 ]
             },
             'action': (req, res) => {
-                if (!req.params.id) {
-                    throw swagger.errors.invalid('id');
+                if (!req.params.username) {
+                    throw swagger.errors.invalid('username');
                 }
-                let id = parseInt(req.params.id);
-                if (isNaN(id)) {
-                    throw swagger.errors.invalid('id');
-                }
-                this.doDeleteUserById(req.auth, id)
+                this.doDeleteUserByUserName(req)
                     .then(result => res.send(JSON.stringify(result)))
                     .catch(error => res.status(500).send({
                     "code": 500,
@@ -280,9 +240,7 @@ class Users {
             .addGet(this.getUsers)
             .addGet(this.getUserByUserName)
             .addPut(this.putUserByUserName)
-            .addPost(this.postUserWithQueryParameter)
-            .addPost(this.postUsers)
-            .addDelete(this.deleteUserById);
+            .addDelete(this.deleteUserByUserName);
         swagger.configureDeclaration("Users", {
             description: "Operations about Users",
             // authorizations : ["oauth2"],
@@ -449,10 +407,10 @@ class Users {
     }
     doPostUsers(auth, users) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!auth) {
-                // this cannot happen
-                return Promise.reject("No permissions");
-            }
+            // if (!auth) {
+            //   // this cannot happen
+            //   return Promise.reject ("No permissions");
+            // }
             let admin = this.userIsAdmin(auth.user);
             let maxid = 0;
             for (let i = 0; i < this.fakedUserDB.length; i++) {
@@ -466,43 +424,30 @@ class Users {
             return Promise.resolve(ids);
         });
     }
-    doDeleteUserById(auth, id) {
+    doDeleteUserByUserName(req) {
         return new Promise((resolve, reject) => {
-            // TODO: auth
-            if (1 == id) {
-                reject("I am not brave enough to delete this user");
+            if (this.userIsAdmin(req)) {
+                // OK
             }
             else {
-                let found = false;
-                for (let i = 0; i < this.fakedUserDB.length; i++) {
-                    if (id == this.fakedUserDB[i].id) {
-                        found = true;
-                        this.fakedUserDB.splice(i, 1);
-                        resolve({ count: 1 });
-                        return;
-                    }
+                // only provide own data
+                if (req.params.username && req.params.username != req.auth.user) {
+                    reject("Not your data");
+                    return;
                 }
-                if (!found) {
-                    reject("No such user");
-                }
+                // req.body.isadmin = false;
             }
-        });
-    }
-    // The real things....
-    doGetUsers_real(auth, username, limit, offset) {
-        return new Promise((resolve, reject) => {
-            // TODO: userIsAdmin(auth.user)
-            let sql = "SELECT * FROM users";
-            let params = [limit || this.defaultLimit, offset || 0];
-            if (username) {
-                sql += " where UserName = $3";
-                params.push(username);
-            }
-            sql += "  LIMIT $1 OFFSET $2";
+            let sql = "DELETE FROM users where pk_username = $1 RETURNING *";
+            let params = [req.params.username];
             this.pool
                 .query(sql, params)
                 .then(res => {
-                resolve(res.rows);
+                if (res.rows.length == 1) {
+                    resolve(res.rows);
+                }
+                else {
+                    reject("No such user");
+                }
             })
                 .catch(error => {
                 console.error(sql + " with params " + JSON.stringify(params) + ": " + error.toString());
