@@ -151,4 +151,16 @@ export var models = {
       }
     },
 
+    "order": {
+      "id": "order",
+      "description": "one order",
+      "required": ["pk_orderid"],
+      "properties": {
+        "pk_orderid": {
+          "type": "integer",
+          "description": "unique orderid"
+        }
+      }
+    },
+
 }
