@@ -375,7 +375,7 @@ export class Users {
         }
       }
 
-      sql2 += `) SELECT `;
+      sql2 += `, pk_username) SELECT `;
       for(let j = 0; j < i; j++){
         if(j != 0){
           sql2 += `, `;
@@ -383,8 +383,8 @@ export class Users {
         sql2 += `$${j+1}`;
       }
 
-      sql1 += ` WHERE pk_username = $${i+1}`;
-      sql2 += ` WHERE NOT EXISTS (SELECT 1 FROM users WHERE pk_username = $${i+1})`;
+      sql1 += ` WHERE pk_username = $${i+1};`;
+      sql2 += ` , CAST($${i+1} as VARCHAR) WHERE NOT EXISTS (SELECT 1 FROM users WHERE pk_username = $${i+1});`;
 
       params.push(req.params.username);
 
