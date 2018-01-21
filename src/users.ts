@@ -292,6 +292,9 @@ export class Users {
 
   public doGetUserByUserName (req: Request) : Promise<Types.User> {
     return new Promise ((resolve, reject) => {
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
       // req.auth, req.params.username
       if (this.userIsAdmin (req)) {
         // OK
@@ -324,6 +327,9 @@ export class Users {
 
   public doPutUserByUserName (req: Request) : Promise<Types.Id> {
     return new Promise ((resolve, reject) => {
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
       if (this.userIsAdmin (req)) {
         // OK
       } else {
@@ -420,6 +426,9 @@ export class Users {
 
   public doDeleteUserByUserName (req: Request) : Promise<Types.Count> {
     return new Promise ((resolve, reject) => {
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
       if (this.userIsAdmin (req)) {
         // OK
       } else {

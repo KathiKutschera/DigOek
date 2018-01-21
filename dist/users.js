@@ -306,6 +306,9 @@ class Users {
     }
     doGetUserByUserName(req) {
         return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
             // req.auth, req.params.username
             if (this.userIsAdmin(req)) {
                 // OK
@@ -339,6 +342,9 @@ class Users {
     }
     doPutUserByUserName(req) {
         return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
             if (this.userIsAdmin(req)) {
                 // OK
             }
@@ -426,6 +432,9 @@ class Users {
     }
     doDeleteUserByUserName(req) {
         return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
             if (this.userIsAdmin(req)) {
                 // OK
             }

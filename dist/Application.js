@@ -58,25 +58,46 @@ class Application {
         swagger.setAppHandler(subpath);
         // only for the REST subpath!
         // from here on available: req.auth: {user: string, password: string}
-        subpath.use(basicAuth({
+        let ba = basicAuth({
             authorizeAsync: true,
             authorizer: this.users.authorizer,
             unauthorizedResponse: this.getUnauthorizedResponse,
             challenge: true,
             realm: 'MyRESTservice'
-        }));
+        });
+        // subpath.use (ba);
+        subpath.use((req, res, next) => {
+            if (req.method == 'GET') {
+                if (req.path == '/users') {
+                    ba(req, res, next);
+                }
+                else {
+                    // no login needed
+                    next();
+                }
+            }
+            else {
+                ba(req, res, next);
+            }
+        });
         subpath.use((req, res, next) => {
             // get userdetails to be easy available later
-            this.users.getUserDetail(req.auth)
-                .then(result => {
-                console.log(`set req.restuser: ${JSON.stringify(result)}`);
-                req['restuser'] = result;
-                next(); // <-- important!
-            })
-                .catch(err => {
-                console.error(`Error getting user details from DB: ${err}`);
-                next(); // <-- important!
-            });
+            if (req.hasOwnProperty("auth")) {
+                this.users.getUserDetail(req["auth"])
+                    .then(result => {
+                    console.log(`set req.restuser: ${JSON.stringify(result)}`);
+                    req['restuser'] = result;
+                    next(); // <-- important!
+                })
+                    .catch(err => {
+                    console.error(`Error getting user details from DB: ${err}`);
+                    next(); // <-- important!
+                });
+            }
+            else {
+                console.log("Not logged in");
+                next();
+            }
             // from here on use req.restuser.isAdmin (or other fields)
             // or simpler: users.userIsAdmin (req) : boolean
         });
