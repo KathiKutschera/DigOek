@@ -68,12 +68,20 @@ class Application {
         // subpath.use (ba);
         subpath.use((req, res, next) => {
             if (req.method == 'GET') {
-                if (req.path == '/users') {
+                if ((req.path.startsWith('/users')) || (req.path.startsWith('/orders'))) {
                     ba(req, res, next);
                 }
                 else {
                     // no login needed
                     next();
+                }
+            }
+            else if (req.method == 'POST') {
+                if (req.path == '/register') {
+                    next();
+                }
+                else {
+                    ba(req, res, next);
                 }
             }
             else {
@@ -112,14 +120,15 @@ class Application {
         // only the users need to be saved in a varible - needed for login
         // users is special as it is needed for auth
         this.users.mount();
-        // also register is special
-        new register_1.Register(this.pool, this.users, this.app).mount();
+        // // also register is special
+        // new Register(this.pool, this.users, this.app).mount();
         // in general:
         // pool to access db
         // users to have users.isUserAdmin (name):boolean
         //   new Whatever(this.pool, this.users).mount();
         new products_1.Products(this.pool, this.users).mount();
         new orders_1.Orders(this.pool, this.users).mount();
+        new register_1.Register(this.pool, this.users).mount();
         // .... and so on ...
         /////////////////////////////////////////////////////
         ///

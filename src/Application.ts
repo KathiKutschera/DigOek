@@ -82,140 +82,147 @@ export class Application {
   // only for the REST subpath!
   // from here on available: req.auth: {user: string, password: string}
   let  ba = basicAuth({
-  authorizeAsync: true,
-  authorizer: this.users.authorizer,
-  unauthorizedResponse: this.getUnauthorizedResponse,
-  challenge: true,
-  realm: 'MyRESTservice'
-});
-
-// subpath.use (ba);
-subpath.use ((req, res, next) => {
-if (req.method == 'GET') {
-  if (req.path == '/users') {
-    ba(req, res, next);
-  } else {
-    // no login needed
-    next();
-  }
-} else {
-  ba(req, res, next);
-}
-});
-
-subpath.use( (req, res, next) => {
-  // get userdetails to be easy available later
-  if (req.hasOwnProperty ("auth")) {
-  this.users.getUserDetail (req["auth"])
-  // .then ( result => req['restuser'] = result )
-  .then ( result => {
-  console.log (`set req.restuser: ${JSON.stringify (result)}`);
-  req['restuser'] = result;
-  next(); // <-- important!
-})
-.catch ( err => {
-  console.error (`Error getting user details from DB: ${err}`);
-  next(); // <-- important!
-});
-} else {
-  console.log ("Not logged in")
-  next();
-}
-// from here on use req.restuser.isAdmin (or other fields)
-// or simpler: users.userIsAdmin (req) : boolean
-});
-
-swagger.addModels(models);
-
-/////////////////////////////////////////////////////
-///
-///   ALL PARTS !!
-///
-/////////////////////////////////////////////////////
-
-// Add methods to swagger
-// repeate for each of the files
-// only the users need to be saved in a varible - needed for login
-
-// users is special as it is needed for auth
-this.users.mount();
-// also register is special
-new Register(this.pool, this.users, this.app).mount();
-
-// in general:
-// pool to access db
-// users to have users.isUserAdmin (name):boolean
-//   new Whatever(this.pool, this.users).mount();
-
-new Products(this.pool, this.users).mount();
-new Orders(this.pool, this.users).mount();
-
-// .... and so on ...
-
-/////////////////////////////////////////////////////
-///
-///   END ALL PARTS !!
-///
-/////////////////////////////////////////////////////
-//
-// app.use(basicAuth(options), (req: basicAuth.IBasicAuthedRequest, res, next) => {
-//     res.end(`Welcome ${req.auth.user} (your password is ${req.auth.password})`)
-//     next()
-// })
-
-
-
-// set  api info
-swagger.setApiInfo({
-title: "'We Love Food' REST service ",
-description: "This is a REST service for Webshop 'We Love Food'",
-// termsOfServiceUrl: "http://example.at/",
-// contact: "admin@example.com",
-license: "Apache 2.0",
-licenseUrl: "http://www.apache.org/licenses/LICENSE-2.0.html"
-});
-
-// Configures the app's base path and api version.
-swagger.configureSwaggerPaths("", "api-docs", "")
-swagger.configure("/rest", "1.0.0");
-
-
-this.mountMisc();
-}
-
-private mountPublic(): void {
-  this.app.use('/public', express.static(path.join(__dirname, '/../public')));
-  this.app.use('/public', serveIndex (path.join(__dirname, '/../public'), {icons: true}));
-}
-
-private mountMisc (): void {
-  // Serve up swagger ui at /docs via static route
-  let docs_handler = express.static(__dirname + '/../docs/');
-  this.app.get(/^\/docs(\/.*)?$/, function(req, res, next) {
-    if (req.url === '/docs') { // express static barfs on root url w/o trailing slash
-      res.writeHead(302, { 'Location' : req.url + '/' });
-      res.end();
-      return;
-    }
-    // take off leading /docs so that connect locates file correctly
-    req.url = req.url.substr('/docs'.length);
-    return docs_handler(req, res, next);
+    authorizeAsync: true,
+    authorizer: this.users.authorizer,
+    unauthorizedResponse: this.getUnauthorizedResponse,
+    challenge: true,
+    realm: 'MyRESTservice'
   });
 
-  // Redirect
-  this.app.get ('/', function (req, res) {
-  //  to swagger docu
-  // res.redirect ('/docs/')
-  //  to GUI
-  res.redirect ('/public/')
-});
-};
+  // subpath.use (ba);
+  subpath.use ((req, res, next) => {
+    if (req.method == 'GET') {
+      if ((req.path.startsWith('/users')) || (req.path.startsWith('/orders'))) {
+        ba(req, res, next);
+      } else {
+        // no login needed
+        next();
+      }
+    } else if (req.method == 'POST') {
+      if (req.path == '/register'){
+        next();
+      } else {
+        ba(req, res, next);
+      }
+    } else {
+      ba(req, res, next);
+    }
+  });
+
+  subpath.use( (req, res, next) => {
+    // get userdetails to be easy available later
+    if (req.hasOwnProperty ("auth")) {
+      this.users.getUserDetail (req["auth"])
+      // .then ( result => req['restuser'] = result )
+      .then ( result => {
+      console.log (`set req.restuser: ${JSON.stringify (result)}`);
+      req['restuser'] = result;
+      next(); // <-- important!
+    })
+    .catch ( err => {
+      console.error (`Error getting user details from DB: ${err}`);
+      next(); // <-- important!
+    });
+  } else {
+    console.log ("Not logged in")
+    next();
+  }
+  // from here on use req.restuser.isAdmin (or other fields)
+  // or simpler: users.userIsAdmin (req) : boolean
+  });
+
+  swagger.addModels(models);
+
+  /////////////////////////////////////////////////////
+  ///
+  ///   ALL PARTS !!
+  ///
+  /////////////////////////////////////////////////////
+
+  // Add methods to swagger
+  // repeate for each of the files
+  // only the users need to be saved in a varible - needed for login
+
+  // users is special as it is needed for auth
+  this.users.mount();
+  // // also register is special
+  // new Register(this.pool, this.users, this.app).mount();
+
+  // in general:
+  // pool to access db
+  // users to have users.isUserAdmin (name):boolean
+  //   new Whatever(this.pool, this.users).mount();
+
+  new Products(this.pool, this.users).mount();
+  new Orders(this.pool, this.users).mount();
+  new Register(this.pool, this.users).mount();
+
+  // .... and so on ...
+
+  /////////////////////////////////////////////////////
+  ///
+  ///   END ALL PARTS !!
+  ///
+  /////////////////////////////////////////////////////
+  //
+  // app.use(basicAuth(options), (req: basicAuth.IBasicAuthedRequest, res, next) => {
+  //     res.end(`Welcome ${req.auth.user} (your password is ${req.auth.password})`)
+  //     next()
+  // })
 
 
-private getUnauthorizedResponse (req) : string {
-  return req.auth ?
-  ('Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected') :
-  'No credentials provided'
-}
+
+  // set  api info
+  swagger.setApiInfo({
+  title: "'We Love Food' REST service ",
+  description: "This is a REST service for Webshop 'We Love Food'",
+  // termsOfServiceUrl: "http://example.at/",
+  // contact: "admin@example.com",
+  license: "Apache 2.0",
+  licenseUrl: "http://www.apache.org/licenses/LICENSE-2.0.html"
+  });
+
+  // Configures the app's base path and api version.
+  swagger.configureSwaggerPaths("", "api-docs", "")
+  swagger.configure("/rest", "1.0.0");
+
+
+  this.mountMisc();
+  }
+
+  private mountPublic(): void {
+    this.app.use('/public', express.static(path.join(__dirname, '/../public')));
+    this.app.use('/public', serveIndex (path.join(__dirname, '/../public'), {icons: true}));
+  }
+
+  private mountMisc (): void {
+    // Serve up swagger ui at /docs via static route
+    let docs_handler = express.static(__dirname + '/../docs/');
+    this.app.get(/^\/docs(\/.*)?$/, function(req, res, next) {
+      if (req.url === '/docs') { // express static barfs on root url w/o trailing slash
+        res.writeHead(302, { 'Location' : req.url + '/' });
+        res.end();
+        return;
+      }
+      // take off leading /docs so that connect locates file correctly
+      req.url = req.url.substr('/docs'.length);
+      return docs_handler(req, res, next);
+    });
+
+    // Redirect
+    this.app.get ('/', function (req, res) {
+    //  to swagger docu
+    // res.redirect ('/docs/')
+    //  to GUI
+    res.redirect ('/public/')
+  });
+  };
+
+
+  private getUnauthorizedResponse (req) : string {
+    return req.auth ?
+    ('Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected') :
+    'No credentials provided'
+  }
 
 }

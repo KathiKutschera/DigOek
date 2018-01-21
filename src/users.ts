@@ -260,6 +260,9 @@ export class Users {
 
   public doGetUsers (req: Request, username: string, limit: number, offset: number) : Promise<Types.User[]> {
     return new Promise ((resolve, reject) => {
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
       if (this.userIsAdmin (req)) {
         // OK
       } else {
