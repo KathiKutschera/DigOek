@@ -200,31 +200,27 @@ export class Users {
   public deleteUserByUserName = {
     'spec': {
       description : "Operations about Users",
-      path : "/users/{id}",
+      path : "/users/{username}",
       method: "DELETE",
       summary : "Delete a single User by ID",
       notes : "Returns number of deleted Users",
       type : "count",
-      nickname : "deleteUserById",
+      nickname : "deleteUserByUserName",
       produces : ["application/json"],
       parameters : [
-        swagger.params.path("id", "ID of User", "long")
+        swagger.params.path("username", "UserName of User", "string")
       ],
       responseMessages : [
-        { "code": 400, "message": 'invalid id' },
+        { "code": 400, "message": 'invalid username' },
         // { "code": 404, "message": 'id not found' },
         { "code": 500, "message": 'internal server error'}
       ]
     },
     'action': (req,res) => {
-      if (!req.params.id) {
-        throw swagger.errors.invalid('id');
+      if (!req.params.username) {
+        throw swagger.errors.invalid('username');
       }
-      let id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        throw swagger.errors.invalid('id');
-      }
-      this.doDeleteUserById (req.auth, id)
+      this.doDeleteUserByUserName (req)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
@@ -404,10 +400,10 @@ export class Users {
     }
 
   public async doPostUsers (auth: Types.Auth, users: Types.User[]) : Promise<Types.Id[]> {
-      if (!auth) {
-        // this cannot happen
-        return Promise.reject ("No permissions");
-      }
+      // if (!auth) {
+      //   // this cannot happen
+      //   return Promise.reject ("No permissions");
+      // }
       let admin = this.userIsAdmin (auth.user);
       let maxid = 0;
       for (let i = 0; i < this.fakedUserDB.length; i++) {
@@ -423,25 +419,34 @@ export class Users {
       return Promise.resolve (ids);
   }
 
-  public doDeleteUserById (auth: Types.Auth, id: number) : Promise<Types.Count> {
+  public doDeleteUserByUserName (req: Request) : Promise<Types.Count> {
     return new Promise ((resolve, reject) => {
-      // TODO: auth
-      if (1 == id) {
-        reject ("I am not brave enough to delete this user");
+      if (this.userIsAdmin (req)) {
+        // OK
       } else {
-        let found = false;
-        for (let i = 0; i < this.fakedUserDB.length; i++) {
-          if (id == this.fakedUserDB[i].id) {
-            found = true;
-            this.fakedUserDB.splice(i, 1);
-            resolve ({count: 1});
-            return;
-          }
+        // only provide own data
+        if (req.params.username && req.params.username != req.auth.user) {
+          reject ("Not your data");
+          return;
         }
-        if (!found) {
-          reject ("No such user");
-        }
+        // req.body.isadmin = false;
       }
+
+      let sql = "DELETE FROM users where pk_username = $1 RETURNING *";
+      let params: [string | number] = [req.params.username];
+      this.pool
+      .query (sql, params)
+      .then (res => {
+        if(res.rows.length == 1){
+          resolve (res.rows);
+        } else {
+            reject ("No such user");
+          }
+      })
+      .catch (error => {
+        console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+        reject (error.toString());
+      });
     });
   }
 

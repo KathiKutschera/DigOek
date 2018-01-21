@@ -32,13 +32,13 @@ exports.models = {
     "user": {
         "id": "user",
         "description": "One user",
-        "required": ["username", "passwordhash"],
+        "required": ["pk_username", "pwhash"],
         "properties": {
-            "username": {
+            "pk_username": {
                 "type": "string",
                 "description": "Uniqe username"
             },
-            "passwordhash": {
+            "pwhash": {
                 "type": "string",
                 "description": "hashed password"
             },
