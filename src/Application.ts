@@ -22,6 +22,7 @@ import * as Types from "./types";
 import * as models from "./models";
 
 import { Users } from "./users";
+import { Register } from './register';
 import { Products } from "./products";
 
 export class Application {
@@ -119,6 +120,8 @@ export class Application {
 
     // users is special as it is needed for auth
     this.users.mount();
+    // also register is special
+    new Register(this.pool, this.users, this.app).mount();
 
     // in general:
     // pool to access db

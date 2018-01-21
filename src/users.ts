@@ -10,7 +10,6 @@ import * as pg from 'pg';
 // shared datatypes
 import * as Types from "./types";
 
-
 // Time format processing
 import * as moment from 'moment';
 

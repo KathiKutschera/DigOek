@@ -15,6 +15,7 @@ const pg = require("pg");
 // shared models
 const models = require("./models");
 const users_1 = require("./users");
+const register_1 = require("./register");
 const products_1 = require("./products");
 class Application {
     constructor(port) {
@@ -89,6 +90,8 @@ class Application {
         // only the users need to be saved in a varible - needed for login
         // users is special as it is needed for auth
         this.users.mount();
+        // also register is special
+        new register_1.Register(this.pool, this.users, this.app).mount();
         // in general:
         // pool to access db
         // users to have users.isUserAdmin (name):boolean

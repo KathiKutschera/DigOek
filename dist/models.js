@@ -128,6 +128,10 @@ exports.models = {
                 "type": "string",
                 "description": "gives the amount/grams/whatever per which that product is sold"
             },
+            "price": {
+                "type": "double",
+                "description": "gives the price of the product"
+            },
             "amountavailable": {
                 "type": "integer",
                 "description": "gives the nuber of available items of that product"
