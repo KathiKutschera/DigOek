@@ -23,6 +23,7 @@ import * as models from "./models";
 
 import { Users } from "./users";
 import { Products } from "./products";
+import { Orders } from "./orders";
 
 export class Application {
 
@@ -126,6 +127,7 @@ export class Application {
     //   new Whatever(this.pool, this.users).mount();
 
     new Products(this.pool, this.users).mount();
+    new Orders(this.pool, this.users).mount();
 
     // .... and so on ...
 
