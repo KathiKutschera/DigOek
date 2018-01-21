@@ -30,6 +30,7 @@ export class Orders {
     .addGet (this.getOrders)
     .addGet (this.getOrdersByID)
     .addPost (this.postOrders)
+    .addDelete(this.deleteOrders)
     // .addPost (this.postUserWithQueryParameter)
     // .addPost (this.postUsers)
     // .addDelete (this.deleteUserById)
@@ -81,7 +82,37 @@ export class Orders {
     }
   };
 
-
+  public deleteOrders = {
+    'spec': {
+      description : "Operations about Orders",
+      path : "/orders/{id}",
+      method: "DELETE",
+      summary : "delete the selected Orders",
+      notes : "Returns number of deleted Orders",
+      type : "count",
+      nickname : "deleteOrders",
+      produces : ["application/json"],
+      parameters : [
+        swagger.params.path("id", "id of Order", "long")
+      ],
+      responseMessages : [{
+        "code": 500,
+        "message": 'internal server error'
+      }]
+    },
+    'action': (req,res) => {
+      this.doDeleteOrders (req)
+      .then (result => {
+          res.send(JSON.stringify(result))
+      })
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
+  
+  
    public getOrdersByID = {
     'spec': {
       description : "Operations about Orders",
@@ -118,19 +149,19 @@ export class Orders {
     }
   };
 
-
+  
     public postOrders = {
     'spec': {
       description : "Operations about Users",
-      path : "/orders/{username}",
+      path : "/orders",
       method: "POST",
       summary : "Create an order",
       notes : "Returns orderID",
       type : "order",
-      nickname : "postOrders",
+      nickname : "PostOrders",
       produces : ["application/json"],
       parameters : [
-        swagger.params.path("username", "UserName of User", "string"),
+        swagger.params.path ("username", "UserName of User", "string"), 
         swagger.params.body("body", 'Order as JSON string', "string")
       ],
       responseMessages : [
@@ -143,7 +174,7 @@ export class Orders {
       if (!req.params.username) {
         throw swagger.errors.invalid('username');
       }
-      this.doPostOrders (req)
+      this.doPostOrders (req, req.auth, req.params.id)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
@@ -175,8 +206,8 @@ export class Orders {
       });
     });
   }
-
-
+  
+  
    public doGetOrdersByID (req: Request, auth: Types.Auth, id: number) : Promise<Types.Order> {
     return new Promise ((resolve, reject) => {
       // req.auth, req.params.username
@@ -202,7 +233,10 @@ export class Orders {
   }
 
 
-  public doPostOrders (req) : Promise<Types.Id> {
+
+
+  public doPostOrders (req: Request, auth: Types.Auth, id: number) : Promise<Types.Id> {
+   
    return new Promise ((resolve, reject) => {
       if (! req.hasOwnProperty ('auth')) {
         return reject ("Not logged in");
@@ -251,23 +285,47 @@ export class Orders {
 
       params.push(req.params.username);
 
-      // console.log(sql1);
+      console.log(sql1);
       console.log(sql2);
       console.log(JSON.stringify(params));
 
       this.pool
-        .query(sql2, params)
-        .then ( res => {
+        .query(sql1, params)
+        .catch (error => {
+          console.error(sql1 + " with params "+JSON.stringify (params) + ": " + error.toString());
+          reject (error.toString());
+        })
+        .then ( _ => this.pool.query (sql2, params))
+        .catch ( error => {
+          console.error(sql2 + " with params "+JSON.stringify (params) + ": " + error.toString());
+          reject (error.toString());
+        })
+        .then ( _ => resolve ({"pk_username": req.params.username}))
+      });
+    }
+    
+    public doDeleteOrders (req: Request) : Promise<Types.Count> {
+      return new Promise ((resolve, reject) => {
+        if (! req.hasOwnProperty ('auth')) {
+          return reject ("Not logged in");
+        }
+  
+        let sql = "DELETE FROM orders where pk_orderid = $1 RETURNING *";
+        let params: [number] = [req.params.id];
+        this.pool
+        .query (sql, params)
+        .then (res => {
           if(res.rows.length == 1){
             resolve (res.rows);
           } else {
-            reject ("Failed");
-          }
+              reject ("No such order");
+            }
         })
-        .catch ( error => {
-          console.error(sql2 + " with params "+JSON.stringify (params) + ": " + error.toString());
+        .catch (error => {
+          console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
           reject (error.toString());
         });
       });
     }
+  
   }
