@@ -114,14 +114,6 @@ class Application {
             license: "Apache 2.0",
             licenseUrl: "http://www.apache.org/licenses/LICENSE-2.0.html"
         });
-        /*
-        swagger.setAuthorizations({
-          apiKey: {
-           type: "apiKey",
-           passAs: "header"
-          }
-        });
-        */
         // Configures the app's base path and api version.
         swagger.configureSwaggerPaths("", "api-docs", "");
         swagger.configure("/rest", "1.0.0");
