@@ -2,8 +2,6 @@
 // admin-related
 Object.defineProperty(exports, "__esModule", { value: true });
 const swagger = require("swagger-node-express");
-// shared datatypes
-const Types = require("./types");
 class Orders {
     constructor(pool, users) {
         this.pool = pool;
@@ -37,7 +35,7 @@ class Orders {
                     }]
             },
             'action': (req, res) => {
-                this.doGetOrders(req.auth, req.query.limit, req.query.offset)
+                this.doGetOrders(req, req.auth, req.query.limit, req.query.offset)
                     .then(result => {
                     res.send(JSON.stringify(result));
                 })
@@ -74,7 +72,7 @@ class Orders {
                 if (isNaN(id)) {
                     throw swagger.errors.invalid('id');
                 }
-                this.doGetOrdersByID(req.auth, req.params.id)
+                this.doGetOrdersByID(req, req.auth, req.params.id)
                     .then(result => res.send(JSON.stringify(result)))
                     .catch(error => res.status(500).send({
                     "code": 500,
@@ -85,12 +83,12 @@ class Orders {
         this.postOrders = {
             'spec': {
                 description: "Operations about Users",
-                path: "/orders",
+                path: "/orders/{username}",
                 method: "POST",
                 summary: "Create an order",
                 notes: "Returns orderID",
                 type: "order",
-                nickname: "PostOrders",
+                nickname: "postOrders",
                 produces: ["application/json"],
                 parameters: [
                     swagger.params.path("username", "UserName of User", "string"),
@@ -106,7 +104,7 @@ class Orders {
                 if (!req.params.username) {
                     throw swagger.errors.invalid('username');
                 }
-                this.doPostOrders(req.auth, req.params.id)
+                this.doPostOrders(req)
                     .then(result => res.send(JSON.stringify(result)))
                     .catch(error => res.status(500).send({
                     "code": 500,
@@ -131,8 +129,11 @@ class Orders {
     ///////////////////////////////////////////////
     ///
     ///  DB access methods
-    doGetOrders(auth, limit, offset) {
+    doGetOrders(req, auth, limit, offset) {
         return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
             let sql = "SELECT * FROM orders";
             let params = [limit || this.defaultLimit, offset || 0];
             sql += "  LIMIT $1 OFFSET $2";
@@ -147,9 +148,12 @@ class Orders {
             });
         });
     }
-    doGetOrdersByID(auth, id) {
+    doGetOrdersByID(req, auth, id) {
         return new Promise((resolve, reject) => {
             // req.auth, req.params.username
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
             let sql = "SELECT * FROM orders where pk_orderid = $1";
             let params = [id];
             this.pool
@@ -168,8 +172,67 @@ class Orders {
             });
         });
     }
+    doPostOrders(req) {
+        return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
+            let requiredFields = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+            for (let i = 0; i < requiredFields.length; i++) {
+                if (!req.body.hasOwnProperty(requiredFields[i])) {
+                    reject(`Missing field: ${requiredFields[i]}`);
+                    return;
+                }
+            }
+            //let sql1 = "UPDATE users SET";
+            let sql2 = "INSERT INTO orders(";
+            let params = [];
+            let allFields = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+            let i = 0;
+            for (; i < allFields.length; i++) {
+                if (req.body.hasOwnProperty(allFields[i])) {
+                    if (i != 0) {
+                        //  sql1 += `, `;
+                        sql2 += `, `;
+                    }
+                    //  sql1 += ` ${allFields[i]} = $${i+1}` ;
+                    sql2 += ` ${allFields[i]}`;
+                    // if(allFields[i] == "pwhash"){
+                    //  params.push(crypto.createHash('sha256').update(req.body[allFields[i]]).digest('base64'));
+                    //} else {
+                    params.push(req.body[allFields[i]]);
+                    //}
+                }
+            }
+            sql2 += `) VALUES `;
+            for (let j = 0; j < i; j++) {
+                if (j != 0) {
+                    sql2 += `, `;
+                }
+                sql2 += `$${j + 1}`;
+            }
+            //   sql1 += ` WHERE pk_username = $${i+1}`;
+            //   sql2 += ` WHERE NOT EXISTS (SELECT 1 FROM users WHERE pk_username = $${i+1})`;
+            params.push(req.params.username);
+            // console.log(sql1);
+            console.log(sql2);
+            console.log(JSON.stringify(params));
+            this.pool
+                .query(sql2, params)
+                .then(res => {
+                if (res.rows.length == 1) {
+                    resolve(res.rows);
+                }
+                else {
+                    reject("Failed");
+                }
+            })
+                .catch(error => {
+                console.error(sql2 + " with params " + JSON.stringify(params) + ": " + error.toString());
+                reject(error.toString());
+            });
+        });
+    }
 }
 exports.Orders = Orders;
-doPostOrders(auth, Types.Auth, id, number);
-Promise < Types.Id > {};
 //# sourceMappingURL=orders.js.map

@@ -80,8 +80,8 @@ export class Orders {
       }))
     }
   };
-  
-  
+
+
    public getOrdersByID = {
     'spec': {
       description : "Operations about Orders",
@@ -118,19 +118,19 @@ export class Orders {
     }
   };
 
-  
+
     public postOrders = {
     'spec': {
       description : "Operations about Users",
-      path : "/orders",
+      path : "/orders/{username}",
       method: "POST",
       summary : "Create an order",
       notes : "Returns orderID",
       type : "order",
-      nickname : "PostOrders",
+      nickname : "postOrders",
       produces : ["application/json"],
       parameters : [
-        swagger.params.path ("username", "UserName of User", "string"), 
+        swagger.params.path("username", "UserName of User", "string"),
         swagger.params.body("body", 'Order as JSON string', "string")
       ],
       responseMessages : [
@@ -143,7 +143,7 @@ export class Orders {
       if (!req.params.username) {
         throw swagger.errors.invalid('username');
       }
-      this.doPostOrders (req, req.auth, req.params.id)
+      this.doPostOrders (req)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
@@ -175,8 +175,8 @@ export class Orders {
       });
     });
   }
-  
-  
+
+
    public doGetOrdersByID (req: Request, auth: Types.Auth, id: number) : Promise<Types.Order> {
     return new Promise ((resolve, reject) => {
       // req.auth, req.params.username
@@ -202,10 +202,7 @@ export class Orders {
   }
 
 
-
-
-  public doPostOrders (req: Request, auth: Types.Auth, id: number) : Promise<Types.Id> {
-   
+  public doPostOrders (req) : Promise<Types.Id> {
    return new Promise ((resolve, reject) => {
       if (! req.hasOwnProperty ('auth')) {
         return reject ("Not logged in");
@@ -254,22 +251,23 @@ export class Orders {
 
       params.push(req.params.username);
 
-      console.log(sql1);
+      // console.log(sql1);
       console.log(sql2);
       console.log(JSON.stringify(params));
 
       this.pool
-        .query(sql1, params)
-        .catch (error => {
-          console.error(sql1 + " with params "+JSON.stringify (params) + ": " + error.toString());
-          reject (error.toString());
+        .query(sql2, params)
+        .then ( res => {
+          if(res.rows.length == 1){
+            resolve (res.rows);
+          } else {
+            reject ("Failed");
+          }
         })
-        .then ( _ => this.pool.query (sql2, params))
         .catch ( error => {
           console.error(sql2 + " with params "+JSON.stringify (params) + ": " + error.toString());
           reject (error.toString());
-        })
-        .then ( _ => resolve ({"pk_username": req.params.username}))
+        });
       });
-    } 
+    }
   }
