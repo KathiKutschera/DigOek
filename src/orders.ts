@@ -153,7 +153,7 @@ export class Orders {
     public postOrders = {
     'spec': {
       description : "Operations about Users",
-      path : "/orders",
+      path : "/orders", // /{username}
       method: "POST",
       summary : "Create an order",
       notes : "Returns orderID",
@@ -161,7 +161,7 @@ export class Orders {
       nickname : "PostOrders",
       produces : ["application/json"],
       parameters : [
-        swagger.params.path ("username", "UserName of User", "string"), 
+    //    swagger.params.path ("username", "UserName of User", "string"), 
         swagger.params.body("body", 'Order as JSON string', "string")
       ],
       responseMessages : [
@@ -171,9 +171,9 @@ export class Orders {
       ]
     },
     'action': (req,res) => {
-      if (!req.params.username) {
-        throw swagger.errors.invalid('username');
-      }
+      //if (!req.params.username) {
+       // throw swagger.errors.invalid('username');
+      //}
       this.doPostOrders (req, req.auth, req.params.id)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
@@ -250,7 +250,6 @@ export class Orders {
         }
       }
 
-      //let sql1 = "UPDATE users SET";
       let sql2 = "INSERT INTO orders(";
       let params = [];
 
@@ -259,43 +258,29 @@ export class Orders {
       for(; i < allFields.length; i++){
         if(req.body.hasOwnProperty(allFields[i])){
           if(i != 0){
-          //  sql1 += `, `;
             sql2 += `, `;
           }
-        //  sql1 += ` ${allFields[i]} = $${i+1}` ;
           sql2 += ` ${allFields[i]}`;
-         // if(allFields[i] == "pwhash"){
-          //  params.push(crypto.createHash('sha256').update(req.body[allFields[i]]).digest('base64'));
-          //} else {
-            params.push(req.body[allFields[i]]);
-          //}
+            params.push(req.body[allFields[i]]);        
         }
       }
+	  
+	 // let orderdate = req.body.orderdate; 
 
-      sql2 += `) VALUES `;
+      sql2 += `) VALUES (`;
       for(let j = 0; j < i; j++){
         if(j != 0){
           sql2 += `, `;
         }
         sql2 += `$${j+1}`;
       }
+	  
+	  sql2 += `) `;
 
-   //   sql1 += ` WHERE pk_username = $${i+1}`;
-   //   sql2 += ` WHERE NOT EXISTS (SELECT 1 FROM users WHERE pk_username = $${i+1})`;
-
-      params.push(req.params.username);
-
-      console.log(sql1);
       console.log(sql2);
       console.log(JSON.stringify(params));
 
-      this.pool
-        .query(sql1, params)
-        .catch (error => {
-          console.error(sql1 + " with params "+JSON.stringify (params) + ": " + error.toString());
-          reject (error.toString());
-        })
-        .then ( _ => this.pool.query (sql2, params))
+		this.pool.query (sql2, params)
         .catch ( error => {
           console.error(sql2 + " with params "+JSON.stringify (params) + ": " + error.toString());
           reject (error.toString());

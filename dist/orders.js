@@ -45,6 +45,35 @@ class Orders {
                 }));
             }
         };
+        this.deleteOrders = {
+            'spec': {
+                description: "Operations about Orders",
+                path: "/orders/{id}",
+                method: "DELETE",
+                summary: "delete the selected Orders",
+                notes: "Returns number of deleted Orders",
+                type: "count",
+                nickname: "deleteOrders",
+                produces: ["application/json"],
+                parameters: [
+                    swagger.params.path("id", "id of Order", "long")
+                ],
+                responseMessages: [{
+                        "code": 500,
+                        "message": 'internal server error'
+                    }]
+            },
+            'action': (req, res) => {
+                this.doDeleteOrders(req)
+                    .then(result => {
+                    res.send(JSON.stringify(result));
+                })
+                    .catch(error => res.status(500).send({
+                    "code": 500,
+                    "message": error
+                }));
+            }
+        };
         this.getOrdersByID = {
             'spec': {
                 description: "Operations about Orders",
@@ -83,15 +112,15 @@ class Orders {
         this.postOrders = {
             'spec': {
                 description: "Operations about Users",
-                path: "/orders/{username}",
+                path: "/orders",
                 method: "POST",
                 summary: "Create an order",
                 notes: "Returns orderID",
                 type: "order",
-                nickname: "postOrders",
+                nickname: "PostOrders",
                 produces: ["application/json"],
                 parameters: [
-                    swagger.params.path("username", "UserName of User", "string"),
+                    //    swagger.params.path ("username", "UserName of User", "string"), 
                     swagger.params.body("body", 'Order as JSON string', "string")
                 ],
                 responseMessages: [
@@ -101,10 +130,10 @@ class Orders {
                 ]
             },
             'action': (req, res) => {
-                if (!req.params.username) {
-                    throw swagger.errors.invalid('username');
-                }
-                this.doPostOrders(req)
+                //if (!req.params.username) {
+                // throw swagger.errors.invalid('username');
+                //}
+                this.doPostOrders(req, req.auth, req.params.id)
                     .then(result => res.send(JSON.stringify(result)))
                     .catch(error => res.status(500).send({
                     "code": 500,
@@ -117,7 +146,8 @@ class Orders {
         swagger
             .addGet(this.getOrders)
             .addGet(this.getOrdersByID)
-            .addPost(this.postOrders);
+            .addPost(this.postOrders)
+            .addDelete(this.deleteOrders);
         // .addPost (this.postUserWithQueryParameter)
         // .addPost (this.postUsers)
         // .addDelete (this.deleteUserById)
@@ -172,7 +202,7 @@ class Orders {
             });
         });
     }
-    doPostOrders(req) {
+    doPostOrders(req, auth, id) {
         return new Promise((resolve, reject) => {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
@@ -197,38 +227,50 @@ class Orders {
                     }
                     //  sql1 += ` ${allFields[i]} = $${i+1}` ;
                     sql2 += ` ${allFields[i]}`;
-                    // if(allFields[i] == "pwhash"){
-                    //  params.push(crypto.createHash('sha256').update(req.body[allFields[i]]).digest('base64'));
-                    //} else {
                     params.push(req.body[allFields[i]]);
-                    //}
                 }
             }
-            sql2 += `) VALUES `;
+            sql2 += `) VALUES (`;
             for (let j = 0; j < i; j++) {
                 if (j != 0) {
                     sql2 += `, `;
                 }
                 sql2 += `$${j + 1}`;
             }
+            sql2 += `) `;
             //   sql1 += ` WHERE pk_username = $${i+1}`;
             //   sql2 += ` WHERE NOT EXISTS (SELECT 1 FROM users WHERE pk_username = $${i+1})`;
-            params.push(req.params.username);
-            // console.log(sql1);
+            //params.push(req.params.username);
+            //  console.log(sql1);
             console.log(sql2);
             console.log(JSON.stringify(params));
+            this.pool.query(sql2, params)
+                .catch(error => {
+                console.error(sql2 + " with params " + JSON.stringify(params) + ": " + error.toString());
+                reject(error.toString());
+            })
+                .then(_ => resolve({ "pk_username": req.params.username }));
+        });
+    }
+    doDeleteOrders(req) {
+        return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
+            let sql = "DELETE FROM orders where pk_orderid = $1 RETURNING *";
+            let params = [req.params.id];
             this.pool
-                .query(sql2, params)
+                .query(sql, params)
                 .then(res => {
                 if (res.rows.length == 1) {
                     resolve(res.rows);
                 }
                 else {
-                    reject("Failed");
+                    reject("No such order");
                 }
             })
                 .catch(error => {
-                console.error(sql2 + " with params " + JSON.stringify(params) + ": " + error.toString());
+                console.error(sql + " with params " + JSON.stringify(params) + ": " + error.toString());
                 reject(error.toString());
             });
         });
