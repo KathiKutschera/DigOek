@@ -24,6 +24,10 @@ export interface User {
   ccv: number,
 }
 
+export interface Username {
+  pk_username: string,
+}
+
 export interface Order {
   pk_orderid: number,
   orderdata: string,

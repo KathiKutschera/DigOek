@@ -274,6 +274,9 @@ class Users {
     // }
     doGetUsers(req, username, limit, offset) {
         return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
             if (this.userIsAdmin(req)) {
                 // OK
             }
