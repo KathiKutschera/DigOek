@@ -70,7 +70,7 @@ export class Orders {
       }]
     },
     'action': (req,res) => {
-      this.doGetOrders (req.auth, req.query.limit, req.query.offset)
+      this.doGetOrders (req, req.auth, req.query.limit, req.query.offset)
       .then (result => {
           res.send(JSON.stringify(result))
       })
@@ -109,7 +109,7 @@ export class Orders {
       if (isNaN(id)) {
         throw swagger.errors.invalid('id');
       }
-      this.doGetOrdersByID (req.auth, req.params.id)
+      this.doGetOrdersByID (req, req.auth, req.params.id)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
@@ -143,7 +143,7 @@ export class Orders {
       if (!req.params.username) {
         throw swagger.errors.invalid('username');
       }
-      this.doPostOrders (req.auth, req.params.id)
+      this.doPostOrders (req, req.auth, req.params.id)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
@@ -156,8 +156,11 @@ export class Orders {
   ///
   ///  DB access methods
 
-  public doGetOrders (auth: Types.Auth, limit: number, offset: number) : Promise<Types.Order[]> {
+  public doGetOrders (req: Request, auth: Types.Auth, limit: number, offset: number) : Promise<Types.Order[]> {
     return new Promise ((resolve, reject) => {
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
       let sql = "SELECT * FROM orders";
       let params: [string | number] = [limit || this.defaultLimit, offset || 0];
       sql += "  LIMIT $1 OFFSET $2";
@@ -174,9 +177,12 @@ export class Orders {
   }
   
   
-   public doGetOrdersByID (auth: Types.Auth, id: number) : Promise<Types.Order> {
+   public doGetOrdersByID (req: Request, auth: Types.Auth, id: number) : Promise<Types.Order> {
     return new Promise ((resolve, reject) => {
       // req.auth, req.params.username
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
       let sql = "SELECT * FROM orders where pk_orderid = $1";
       let params: [number] = [id];
       this.pool
@@ -195,10 +201,10 @@ export class Orders {
     });
   }
 
-}
 
 
-  public doPostOrders (auth: Types.Auth, id: number) : Promise<Types.Id> {
+
+  public doPostOrders (req: Request, auth: Types.Auth, id: number) : Promise<Types.Id> {
    
    return new Promise ((resolve, reject) => {
     
@@ -264,3 +270,4 @@ export class Orders {
         .then ( _ => resolve ({"pk_username": req.params.username}))
       });
     } 
+  }
