@@ -207,7 +207,9 @@ export class Orders {
   public doPostOrders (req: Request, auth: Types.Auth, id: number) : Promise<Types.Id> {
    
    return new Promise ((resolve, reject) => {
-    
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
       let requiredFields = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
 
       for(let i = 0; i < requiredFields.length; i++){
