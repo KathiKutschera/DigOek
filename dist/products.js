@@ -27,7 +27,12 @@ class Products {
                 parameters: [
                     // swagger.params.query ("username", "Name of User to be fetched", "string", false),
                     swagger.params.query("limit", "Limit number of results", "number", false, null, this.defaultLimit),
-                    swagger.params.query("offset", "Use together with 'limit' for paging", "number", false, null, 0)
+                    swagger.params.query("offset", "Use together with 'limit' for paging", "number", false, null, 0),
+                    swagger.params.query("groupname", "Name of the productgroup corresponding to the product", "string"),
+                    swagger.params.query("groupid", "ID of the productgroup corresponding to the product", "number"),
+                    swagger.params.query("name", "Name of the product", "string"),
+                    swagger.params.query("status", "NOT CLEAR now", "number"),
+                    swagger.params.query("keyword", "keyword inside name or description of a product", "string"),
                 ],
                 responseMessages: [{
                         "code": 500,
@@ -35,7 +40,20 @@ class Products {
                     }]
             },
             'action': (req, res) => {
-                this.doGetProducts(req.auth, req.query.limit, req.query.offset)
+                if (req.query.limit) {
+                    let limit = parseInt(req.query.limit);
+                    if (isNaN(limit)) {
+                        throw swagger.errors.invalid('limit');
+                    }
+                }
+                if (req.query.groupid) {
+                    console.log("groupID");
+                    let groupid = parseInt(req.query.groupid);
+                    if (isNaN(groupid)) {
+                        throw swagger.errors.invalid('groupID');
+                    }
+                }
+                this.doGetProducts(req, req.query.limit, req.query.offset)
                     .then(result => {
                     res.send(JSON.stringify(result));
                 })
@@ -72,7 +90,7 @@ class Products {
                 if (isNaN(id)) {
                     throw swagger.errors.invalid('id');
                 }
-                this.doGetProductByID(req.auth, req.params.id)
+                this.doGetProductByID(req.params.id)
                     .then(result => res.send(JSON.stringify(result)))
                     .catch(error => res.status(500).send({
                     "code": 500,
@@ -97,11 +115,72 @@ class Products {
     ///////////////////////////////////////////////
     ///
     ///  DB access methods
-    doGetProducts(auth, limit, offset) {
+    doGetProducts(req, limit, offset) {
         return new Promise((resolve, reject) => {
-            let sql = "SELECT * FROM products";
+            let sql = "SELECT products.pk_productid, products.name, products.description, products.soldper, products.price, products.amountavailable, products.vatrate, products.imagename, products.fk_groupid FROM products INNER JOIN productgroups ON pk_groupid=fk_groupid";
+            let counter = 0;
             let params = [limit || this.defaultLimit, offset || 0];
-            sql += "  LIMIT $1 OFFSET $2";
+            if (req.query.groupname || req.query.groupid || req.query.name || req.query.status || req.query.keyword) {
+                sql += " WHERE";
+                if (req.query.groupname) {
+                    sql += " productgroups.name ILIKE $" + (counter + 3);
+                    counter += 1;
+                    params.push(req.query.groupname);
+                }
+                if (req.query.groupid) {
+                    if (counter >= 1) {
+                        sql += " AND fk_groupid = $" + (counter + 3);
+                    }
+                    else {
+                        sql += " fk_groupid = $" + (counter + 3);
+                    }
+                    params.push(req.query.groupid);
+                    counter += 1;
+                }
+                if (req.query.name) {
+                    if (counter >= 1) {
+                        sql += " AND products.name ~ $" + (counter + 3);
+                    }
+                    else {
+                        sql += " products.name ~ $" + (counter + 3);
+                    }
+                    params.push(req.query.name + '*');
+                    counter += 1;
+                }
+                if (req.query.keyword) {
+                    if (counter >= 1) {
+                        sql += " AND products.description ~ $" + (counter + 3) + " OR products.name ~ $" + (counter + 3);
+                    }
+                    else {
+                        sql += " products.description ~ $" + (counter + 3) + " OR products.name ~ $" + (counter + 3);
+                    }
+                    params.push(req.query.keyword + '*');
+                    counter += 1;
+                }
+                if (req.query.status) {
+                    let status = req.query.status;
+                    console.log(status.toUpperCase());
+                    if (status.toUpperCase() === "STOCK") {
+                        if (counter >= 1) {
+                            sql += " AND amountavailable > 0";
+                        }
+                        else {
+                            sql += " amountavailable > 0";
+                        }
+                    }
+                    else {
+                        if (counter >= 1) {
+                            sql += " AND amountavailable >= 0";
+                        }
+                        else {
+                            sql += " amountavailable >= 0";
+                        }
+                    }
+                }
+            }
+            sql += " ORDER BY fk_groupid, pk_productid LIMIT $1 OFFSET $2";
+            console.log(sql);
+            console.log(params);
             this.pool
                 .query(sql, params)
                 .then(res => {
@@ -113,7 +192,7 @@ class Products {
             });
         });
     }
-    doGetProductByID(auth, id) {
+    doGetProductByID(id) {
         return new Promise((resolve, reject) => {
             // req.auth, req.params.username
             let sql = "SELECT * FROM products where pk_productid = $1";
