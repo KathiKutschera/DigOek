@@ -78,40 +78,32 @@ export class ProfileComponent implements OnInit {
       if(data){
         // seems like it worked
         this.successMessage = "Successfully updated your profile."
+        this.user = undefined;
+        return;
       } else {
         // should not happen...
-        // TODO: error handling
+        this.errorMessage = "We are sorry, but an error occured. Please try again later.";
       }
     }).catch(err => {
       console.error(err);
+      this.errorMessage = "";
       this.errorMessage.concat("We are sorry, but an error occurred: ", err);
       // this.error
     });
   }
 
   deleteUser(): void {
-    // if(!(this.pPW1 == this.pPW2)){
-    //   // display error message
-    //   return;
-    // }
-    // if(!this.pEmail){
-    //   // display error message
-    //   return;
-    // }
-    //
-    // this.webshopService.putUser().then((data) => {
-    //   let users : types.User[] = data;
-    //   console.log("data: " + JSON.stringify(data, null, 2));
-    //   if(users.length == 1){
-    //     // found the users profile
-    //     this.user = users[0];
-    //   } else {
-    //     // should not happen...
-    //     // TODO: error handling
-    //   }
-    // }).catch(err => {
-    //   console.error(err);
-    // });
+    this.webshopService.deleteUser().then((data) => {
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data){
+        // seems like it worked
+        this.successMessage = "Successfully deleted your profile."
+
+      }
+    }).catch(err => {
+      console.error(err);
+      this.errorMessage = "You may have open bills. Users with open bills cannot be deleted.";
+    });
   }
 
 
