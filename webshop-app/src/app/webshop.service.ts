@@ -38,9 +38,14 @@ export class WebshopService {
         return reject("fail");
       });
     });
-
-
   }
+
+
+  public getUsername(): string {
+      return this.username;
+  }
+
+
 
   // get Users (by Username?)
   getUsers(username? : string) : Promise<types.User[]> {
@@ -118,6 +123,23 @@ export class WebshopService {
     let params = new HttpParams();
     params = params.append('limit', "100");
     return this.http.get(`${this.url}/rest/products`, {
+      params: params,
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      // console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+
+  // get Productgroups
+  getProductGroups() : Promise<types.Productgroup[]> {
+    let params = new HttpParams();
+    params = params.append('limit', "100");
+    return this.http.get(`${this.url}/rest/group`, {
       params: params,
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })

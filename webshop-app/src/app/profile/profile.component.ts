@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { WebshopService } from '../webshop.service';
+import { Router } from "@angular/router";
 
 import * as types from '../types';
 
@@ -21,10 +22,13 @@ export class ProfileComponent implements OnInit {
   successMessage : string;
 
   // user : types.User = {"pk_username": "testuser", "email": "test@user.at", "name": "Test", "surname": "User", "billingaddress": "my fancy address", "deliveryaddress": "my super facy address"};
-  constructor(private webshopService: WebshopService) { }
+  constructor(
+    private webshopService: WebshopService,
+    private router: Router
+  ) { }
 
   ngOnInit() {
-    this.webshopService.getUsers().then((data) => {
+    this.webshopService.getUsers(this.webshopService.getUsername()).then((data) => {
       let users : types.User[] = data;
       console.log("data: " + JSON.stringify(data, null, 2));
       if(users.length == 1){
@@ -36,6 +40,7 @@ export class ProfileComponent implements OnInit {
       }
     }).catch(err => {
       console.error(err);
+      this.router.navigate(['/home']);
     });
 
   }
@@ -78,7 +83,7 @@ export class ProfileComponent implements OnInit {
       if(data){
         // seems like it worked
         this.successMessage = "Successfully updated your profile."
-        this.user = undefined;
+        // this.user = undefined;
         return;
       } else {
         // should not happen...
@@ -88,7 +93,7 @@ export class ProfileComponent implements OnInit {
       console.error(err);
       this.errorMessage = "";
       this.errorMessage.concat("We are sorry, but an error occurred: ", err);
-      // this.error
+
     });
   }
 

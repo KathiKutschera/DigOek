@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { WebshopService } from './webshop.service';
 
 import { RouterModule, Router } from "@angular/router";
@@ -10,7 +10,7 @@ import * as types from './types';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'app';
 
   showLogin: boolean = false;
@@ -24,6 +24,8 @@ export class AppComponent {
   errorMessageAdd : string = undefined;
   successMessageAdd : string = undefined;
 
+  productgroups: types.Productgroup[] = [];
+
   constructor(
     private webshopService: WebshopService,
     private router: Router
@@ -32,6 +34,15 @@ export class AppComponent {
   }
 
   // on init : get products....
+  ngOnInit() {
+    this.webshopService.getProductGroups().then((data) => {
+      this.productgroups = data;
+      console.log("data: " + JSON.stringify(data, null, 2));
+      // do something else?
+    }).catch(err => {
+      console.error(err);
+    });
+  }
 
   login() {
     let result : string;
