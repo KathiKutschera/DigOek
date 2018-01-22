@@ -1,0 +1,48 @@
+<p>
+  category works!
+</p>
+<div class="container-fluid">
+    <div class="card-group">
+      <div class="card" *ngFor="let product of products; index as i">
+        <div class="text-center">
+          <img class="card-img-top" src="./assets/{{product.imageName}}" alt="Image of {{product.name}}">
+        </div>
+        <div class="card-block">
+          <h4 class="card-title">{{product.name}}</h4>
+          <p class="card-text">{{product.description}}</p>
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">per {{product.soldper}}</li>
+          <li class="list-group-item">Price: {{product.price}}&euro;</li>
+          <li class="list-group-item">
+              <form class="form-inline my-2 my-lg-0">
+                <label>Amount:</label>&nbsp;
+                <input class="form-control" type="number" min="0" max="99" ngMin="0" ngMax="99" name="{{product.id}}" [(ngModel)]="product.amount"/>&nbsp;
+                <button type="button" class="btn btn-success" (click)="addProductToShoppingCart()">
+                  <span><i class="fa fa-cart-plus" aria-hidden="true"></i></span>
+                </button>
+              </form>
+          </li>
+        </ul>
+        <div class="card-footer">
+          <small class="text-muted">We <span><i class="fa fa-heart" aria-hidden="true"></i>
+          </span> Food </small>
+        </div>
+      </div>
+    </div>
+    <br/>
+    <!-- <div>
+      <div class="alert alert-warning alert-dismissible fade show" role="alert" *ngIf="info">{{info}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="info = ''">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <br>
+      <div class="text-right">
+        <button type="button" class="btn btn-lg btn-block btn-success" (click)="orderProducts()">Purchase
+          <span><i class="fa fa-shopping-cart" aria-hidden="true"></i></span>
+        </button>
+      </div>
+    </div>
+    <br/> -->
+  </div>

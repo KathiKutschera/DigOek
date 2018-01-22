@@ -1,0 +1,91 @@
+<div class="container-fluid" *ngIf="user">
+  <h1>
+    Hello {{user.pk_username}}!
+  </h1>
+  <br/>
+
+  <!-- show which tab is active is not working -->
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link active" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showProfileDetails = true">Profile Details</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="tab" role="tab" (click)="showProfileDetails = false; showPrevOrders = true;">Previous Orders</a>
+    </li>
+    <!-- <li class="nav-item">
+      <a class="nav-link" href="#">Link</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link disabled" href="#">Disabled</a>
+    </li> -->
+</ul>
+
+<br/>
+
+
+  <form *ngIf="showProfileDetails">
+    <div class="form-group">
+      <label><b>Name</b></label>
+      <input type="text" class="form-control" name="pName" [(ngModel)]="user.name">
+    </div>
+    <div class="form-group">
+      <label><b>Surname</b></label>
+      <input type="text" class="form-control" name="pSurname" [(ngModel)]="user.surname">
+    </div>
+    <div class="form-group">
+      <label><b>Email address</b></label>
+      <input type="email" class="form-control" name="pEmail" [(ngModel)]="user.email">
+    </div>
+    <div class="form-group">
+      <label><b>New Password</b></label>
+      <input type="password" class="form-control" name="pPW1" [(ngModel)]="newPassword">
+    </div>
+    <div class="form-group">
+      <label><b>Repeat Password</b></label>
+      <input type="password" class="form-control" name="pPW2" [(ngModel)]="newPasswordRepeat">
+    </div>
+    <div class="form-group">
+      <label><b>Company-Name</b></label>
+      <input type="text" class="form-control" name="pCompanyName" [(ngModel)]="user.companyname">
+    </div>
+    <div class="form-group">
+      <label><b>Billing Address</b></label>
+      <input type="text" class="form-control" name="pBillingAddress" [(ngModel)]="user.billingaddress">
+    </div>
+    <div class="form-group">
+      <label><b>Delivery Address</b></label>
+      <input type="text" class="form-control" name="pDeliveryAddress" [(ngModel)]="user.deliveryaddress">
+    </div>
+    <div class="form-group">
+      <label><b>VAT</b></label>
+      <input type="text" class="form-control" name="pVat" [(ngModel)]="user.vat">
+    </div>
+    <div class="form-group">
+      <label><b>Creditcard Number</b></label>
+      <input type="text" class="form-control" name="pCCNr" [(ngModel)]="user.creditcardnr">
+    </div>
+    <div class="form-group">
+      <label><b>Creditcard Validyead</b></label>
+      <input type="number" class="form-control" name="pValidYear" [(ngModel)]="user.validyear">
+    </div>
+    <div class="form-group">
+      <label><b>Creditcard Validmonth</b></label>
+      <input type="number" class="form-control" name="pValidMonth" [(ngModel)]="user.validmonth">
+    </div>
+    <div class="form-group">
+      <label><b>Creditcard CCV</b></label>
+      <input type="text" class="form-control" name="pNameOnCC" [(ngModel)]="user.ccv">
+    </div>
+    <button type="button" class="btn btn-lg btn-block btn-success" (click)="saveChanges()">Save Changes
+      <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
+    </button>
+    <button type="button" class="btn btn-lg btn-block btn-danger" (click)="deleteUser()">Delete Profile
+      <span><i class="fa fa-user-times" aria-hidden="true"></i></span>
+    </button>
+  </form>
+  <br/>
+
+  <h1 *ngIf="showPrevOrders">
+    Orders will be visible here!
+  </h1>
+</div>
