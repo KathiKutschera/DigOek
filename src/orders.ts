@@ -470,7 +470,7 @@ export class Orders {
           this.pool
           .query (sql)
           .then (res => {
-            let val = res.fields(1) - amount[i];
+            let val = res.rows[0].amountavailable - amount[i];
 
             let sql3 = "UPDATE products SET amountavailable = " + 
             `${val}` + 
@@ -527,7 +527,7 @@ export class Orders {
           if (! req.hasOwnProperty ('auth')) {
             return reject ("Not logged in");
           }
-          
+
           let sql = "UPDATE orders SET paymentstate = '"
           + req.params.paymentstate + "', paymentmethod = '"
           + req.params.paymentmethod + "'";
