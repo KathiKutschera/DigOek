@@ -103,7 +103,7 @@ class Register {
                 reject("User already existing");
             })
                 .then(res => {
-                resolve(res.rows);
+                resolve({ "pk_username": req.params.username });
             });
         });
     }

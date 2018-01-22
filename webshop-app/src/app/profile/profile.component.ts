@@ -17,6 +17,9 @@ export class ProfileComponent implements OnInit {
   newPassword : string = undefined;
   newPasswordRepeat : string = undefined;
 
+  errorMessage : string;
+  successMessage : string;
+
   // user : types.User = {"pk_username": "testuser", "email": "test@user.at", "name": "Test", "surname": "User", "billingaddress": "my fancy address", "deliveryaddress": "my super facy address"};
   constructor(private webshopService: WebshopService) { }
 
@@ -43,6 +46,7 @@ export class ProfileComponent implements OnInit {
     if(this.newPassword){
       if(!this.newPasswordRepeat){
         // display error message
+        this.errorMessage = "The password and the repeated password do not match. Please fix this and try again."
         return;
       } else {
         this.user.pwhash = this.newPassword;
@@ -50,60 +54,56 @@ export class ProfileComponent implements OnInit {
     } else if(this.newPasswordRepeat){
       if(!this.newPassword){
         // display error message
+        this.errorMessage = "The password and the repeated password do not match. Please fix this and try again."
         return;
       }
     }
     if(!this.newPassword && !this.newPasswordRepeat){
       this.user.pwhash = "PW";
     }
-    // TODO: also need to check case when newPasswordRepeat but not newPassword
 
     if(!(this.newPassword == this.newPasswordRepeat)){
       // display error message
+      this.errorMessage = "The password and the repeated password do not match. Please fix this and try again."
       return;
     }
     if(!this.user.email){
       // display error message
+      this.errorMessage = "You need to provide an email address. Please fix this and try again."
       return;
     }
 
     this.webshopService.putUser(this.user).then((data) => {
       console.log("data: " + JSON.stringify(data, null, 2));
       if(data){
-        // found the users profile
-        // do something
+        // seems like it worked
+        this.successMessage = "Successfully updated your profile."
+        this.user = undefined;
+        return;
       } else {
         // should not happen...
-        // TODO: error handling
+        this.errorMessage = "We are sorry, but an error occured. Please try again later.";
       }
     }).catch(err => {
       console.error(err);
+      this.errorMessage = "";
+      this.errorMessage.concat("We are sorry, but an error occurred: ", err);
+      // this.error
     });
   }
 
   deleteUser(): void {
-    // if(!(this.pPW1 == this.pPW2)){
-    //   // display error message
-    //   return;
-    // }
-    // if(!this.pEmail){
-    //   // display error message
-    //   return;
-    // }
-    //
-    // this.webshopService.putUser().then((data) => {
-    //   let users : types.User[] = data;
-    //   console.log("data: " + JSON.stringify(data, null, 2));
-    //   if(users.length == 1){
-    //     // found the users profile
-    //     this.user = users[0];
-    //   } else {
-    //     // should not happen...
-    //     // TODO: error handling
-    //   }
-    // }).catch(err => {
-    //   console.error(err);
-    // });
+    this.webshopService.deleteUser().then((data) => {
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data){
+        // seems like it worked
+        this.successMessage = "Successfully deleted your profile."
+
+      }
+    }).catch(err => {
+      console.error(err);
+      this.errorMessage = "You may have open bills. Users with open bills cannot be deleted.";
+    });
   }
 
 

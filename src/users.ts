@@ -203,8 +203,8 @@ export class Users {
       path : "/users/{username}",
       method: "DELETE",
       summary : "Delete a single User by ID",
-      notes : "Returns number of deleted Users",
-      type : "count",
+      notes : "Returns user which was deleteded",
+      type : "user",
       nickname : "deleteUserByUserName",
       produces : ["application/json"],
       parameters : [
@@ -444,7 +444,35 @@ export class Users {
         // req.body.isadmin = false;
       }
 
-      let sql = "DELETE FROM users where pk_username = $1 RETURNING *";
+      // // get amount of not paid orders
+      // let sql1 = "SELECT COUNT(paymentstate) FROM orders WHERE orders.fk_username = $1 AND paymentstate = 'open'";
+      // let params1 : [string] = [req.params.username];
+      // this.pool
+      // .query (sql1, params1)
+      // .then (res => {
+      //   if(res.rows.length == 1){
+      //     console.log(res.rows[0].count);
+      //     if(res.rows[0].count == 0){
+      //       // delete user
+      //     } else {
+      //     reject ("There are open bills. User cannot be deleted when having open bills.")
+      //     return;
+      //   }
+      //   } else {
+      //       reject ("No such user");
+      //       return;
+      //     }
+      // })
+      // .catch (error => {
+      //   console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+      //   reject (error.toString());
+      //   return;
+      // });
+      // DELETE FROM users where pk_username='paul.meier' AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) where users.pk_username = 'paul.meier' and paymentstate='open') = 0;
+
+      // DELETE FROM users where pk_username='hubers.restaurant' and (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) where users.pk_username = 'hubers.restaurant' and paymentstate='open') = 0;
+
+      let sql = "DELETE FROM users where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
       let params: [string | number] = [req.params.username];
       this.pool
       .query (sql, params)
@@ -452,7 +480,7 @@ export class Users {
         if(res.rows.length == 1){
           resolve (res.rows);
         } else {
-            reject ("No such user");
+            reject ("Either the user does not exist or there are open bills. User cannot be deleted when having open bills.");
           }
       })
       .catch (error => {

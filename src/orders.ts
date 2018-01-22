@@ -15,6 +15,7 @@ import * as moment from 'moment';
 
 // Needed for password check
 import * as crypto from 'crypto';
+import { Request } from "express-serve-static-core";
 
 
 export class Orders {
@@ -29,6 +30,7 @@ export class Orders {
     swagger
     .addGet (this.getOrders)
     .addGet (this.getOrdersByID)
+    .addPut(this.putOrdersByID)
     .addPost (this.postOrders)
     .addDelete(this.deleteOrders)
     // .addPost (this.postUserWithQueryParameter)
@@ -183,6 +185,43 @@ export class Orders {
     }
   };
 
+
+  public putOrdersByID = {
+    'spec': {
+      description : "Operation to put Orders",
+      path : "/orders/{id}",
+      method: "PUT",
+      summary : "Put one specific Order",
+      notes : "Returns one Order",
+      type : "order",
+      nickname : "putOrdersByID",
+      produces : ["application/json"],
+      parameters : [
+          swagger.params.path("id", "ID of the order", "long")
+        ],
+      responseMessages : [
+        { "code": 400, "message": 'invalid id' },
+        // { "code": 404, "message": 'id not found' },
+        { "code": 500, "message": 'internal server error'}
+      ]
+    },
+    'action': (req,res) => {
+      if (!req.params.id) {
+        throw swagger.errors.invalid('id');
+      }
+      let id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw swagger.errors.invalid('id');
+      }
+      this.doPutOrdersByID (req, req.auth, req.params.id)
+      .then (result => res.send(JSON.stringify(result)))
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
+
   ///////////////////////////////////////////////
   ///
   ///  DB access methods
@@ -257,13 +296,14 @@ export class Orders {
 
       let allFieldsSql2 = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
       let i = 0;
+
       for(; i < allFieldsSql2.length; i++){
         if(req.body.hasOwnProperty(allFieldsSql2[i])){
           if(i != 0){
             sql2 += `, `;
           }
           sql2 += ` ${allFieldsSql2[i]}`;
-            params2.push(req.body[allFieldsSql2[i]]);        
+            params2.push(req.body[allFieldsSql2[i]]);
         }
       }
 	  
@@ -275,6 +315,7 @@ export class Orders {
           sql2 += `, `;
         }
         sql2 += `$${j+1}`;
+
       }
 	  	  
 	  sql2 += `) `;
@@ -302,6 +343,43 @@ export class Orders {
 	   
 	  let h = 0;
 	  let n = 0;
+
+    let byed = [];
+    let amount = [];
+
+	/////////// FROM BERNHARD (START)
+      for(; h < allFieldsSql1.length; h++){
+        if(req.body.hasOwnProperty(allFieldsSql1[h])){
+		  if( allFieldsSql1[h] == "pk_orderid" ){
+			  console.log("TAG is " + allFieldsSql1[h] + " so im in if and h is " + h);
+			  n++;
+			  if(h != 0){
+        sql1 += `, `;
+        if(h == 4){
+          byed.push(req.body[allFieldsSql1[h]]);
+        }
+        else if(h == 3){
+          amount.push(req.body[allFieldsSql1[h]]);
+        }
+			}
+			sql1 += `fk_pk_orderid`;
+            params1.push(req.body[allFieldsSql1[h]]);  
+
+				console.log("pushed paramenter  " + req.body[allFieldsSql1[h]] +  "  into sql1");
+		  }
+		  
+		   if( allFieldsSql1[h] != "pk_orderid" ){
+          if(h != 0){
+            sql1 += `, `;
+          }
+          console.log("TAG is " + allFieldsSql1[h] + " and h is " + h);
+          sql1 += ` ${allFieldsSql1[h]}`;
+                params1.push(req.body[allFieldsSql1[h]]);  
+          n++;
+          }
+        }
+      }
+		/////////// FROM BERNHARD (END)  
 	  
 	  //get item array and iterate through it
 	   if(req.body.hasOwnProperty("item")){
@@ -370,7 +448,24 @@ export class Orders {
 		  console.log ("no ITEMS!! ");
 	  }
 	  
+	  
+		/////////// FROM BERNHARD (START)  
+	   //Update available products
+         i = 0;
+        for(;i < byed.length; i++){
+          let sql3 = "UPDATE products SET amountavailable = " + 
+          `${amount[i]}` + " WHERE pk_productid="+`${byed[i]}`+";";
+            this.pool.query (sql3)
+              .catch ( error => {
+                console.error(sql3 + ": " + error.toString());
+                reject (error.toString());
+              });
+        }
+		
+			/////////// FROM BERNHARD (END)
+		  
 	 });
+
     }
     
     public doDeleteOrders (req: Request) : Promise<Types.Count> {
@@ -396,5 +491,30 @@ export class Orders {
         });
       });
     }
+
+    public doPutOrdersByID(req:Request, 
+      auth:Types.Auth, id:number){
+        return new Promise ((resolve, reject) => {
+          let sql = "UPDATE orders SET paymentstate = '"
+          + req.params.paymentstate + "', paymentmethod = '"
+          + req.params.paymentmethod + "'";
+
+          sql += "WHERE pk_orderid = " + id;
+
+          this.pool
+          .query (sql)
+          .then (res => {
+            if(res.rows.length == 1){
+              resolve (res.rows);
+            } else {
+                reject ("No such order");
+              }
+          })
+          .catch (error => {
+            console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+            reject (error.toString());
+          });
+        });
+      }
   
   }

@@ -141,11 +141,47 @@ class Orders {
                 }));
             }
         };
+        this.putOrdersByID = {
+            'spec': {
+                description: "Operation to put Orders",
+                path: "/orders/{id}",
+                method: "PUT",
+                summary: "Put one specific Order",
+                notes: "Returns one Order",
+                type: "order",
+                nickname: "putOrdersByID",
+                produces: ["application/json"],
+                parameters: [
+                    swagger.params.path("id", "ID of the order", "long")
+                ],
+                responseMessages: [
+                    { "code": 400, "message": 'invalid id' },
+                    // { "code": 404, "message": 'id not found' },
+                    { "code": 500, "message": 'internal server error' }
+                ]
+            },
+            'action': (req, res) => {
+                if (!req.params.id) {
+                    throw swagger.errors.invalid('id');
+                }
+                let id = parseInt(req.params.id);
+                if (isNaN(id)) {
+                    throw swagger.errors.invalid('id');
+                }
+                this.doPutOrdersByID(req, req.auth, req.params.id)
+                    .then(result => res.send(JSON.stringify(result)))
+                    .catch(error => res.status(500).send({
+                    "code": 500,
+                    "message": error
+                }));
+            }
+        };
     }
     mount() {
         swagger
             .addGet(this.getOrders)
             .addGet(this.getOrdersByID)
+            .addPut(this.putOrdersByID)
             .addPost(this.postOrders)
             .addDelete(this.deleteOrders);
         // .addPost (this.postUserWithQueryParameter)
@@ -255,6 +291,37 @@ class Orders {
             let allFieldsSql1 = ["pk_fk_itemid", "price", "amount", "fk_productid"];
             let h = 0;
             let n = 0;
+            let byed = [];
+            let amount = [];
+            for (; h < allFieldsSql1.length; h++) {
+                if (req.body.hasOwnProperty(allFieldsSql1[h])) {
+                    if (allFieldsSql1[h] == "pk_orderid") {
+                        console.log("TAG is " + allFieldsSql1[h] + " so im in if and h is " + h);
+                        n++;
+                        if (h != 0) {
+                            sql1 += `, `;
+                            if (h == 4) {
+                                byed.push(req.body[allFieldsSql1[h]]);
+                            }
+                            else if (h == 3) {
+                                amount.push(req.body[allFieldsSql1[h]]);
+                            }
+                        }
+                        sql1 += `fk_pk_orderid`;
+                        params1.push(req.body[allFieldsSql1[h]]);
+                        console.log("pushed paramenter  " + req.body[allFieldsSql1[h]] + "  into sql1");
+                    }
+                    if (allFieldsSql1[h] != "pk_orderid") {
+                        if (h != 0) {
+                            sql1 += `, `;
+                        }
+                        console.log("TAG is " + allFieldsSql1[h] + " and h is " + h);
+                        sql1 += ` ${allFieldsSql1[h]}`;
+                        params1.push(req.body[allFieldsSql1[h]]);
+                        n++;
+                    }
+                }
+            }
             //get item array and iterate through it
             if (req.body.hasOwnProperty("item")) {
                 let arrayOfItems = req.body["item"];
@@ -307,6 +374,17 @@ class Orders {
             else {
                 console.log("no ITEMS!! ");
             }
+            //Update available products
+            i = 0;
+            for (; i < byed.length; i++) {
+                let sql3 = "UPDATE products SET amountavailable = " +
+                    `${amount[i]}` + " WHERE pk_productid=" + `${byed[i]}` + ";";
+                this.pool.query(sql3)
+                    .catch(error => {
+                    console.error(sql3 + ": " + error.toString());
+                    reject(error.toString());
+                });
+            }
         });
     }
     doDeleteOrders(req) {
@@ -318,6 +396,28 @@ class Orders {
             let params = [req.params.id];
             this.pool
                 .query(sql, params)
+                .then(res => {
+                if (res.rows.length == 1) {
+                    resolve(res.rows);
+                }
+                else {
+                    reject("No such order");
+                }
+            })
+                .catch(error => {
+                console.error(sql + " with params " + JSON.stringify(params) + ": " + error.toString());
+                reject(error.toString());
+            });
+        });
+    }
+    doPutOrdersByID(req, auth, id) {
+        return new Promise((resolve, reject) => {
+            let sql = "UPDATE orders SET paymentstate = '"
+                + req.params.paymentstate + "', paymentmethod = '"
+                + req.params.paymentmethod + "'";
+            sql += "WHERE pk_orderid = " + id;
+            this.pool
+                .query(sql)
                 .then(res => {
                 if (res.rows.length == 1) {
                     resolve(res.rows);

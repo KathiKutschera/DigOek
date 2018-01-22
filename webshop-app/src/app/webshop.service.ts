@@ -29,13 +29,13 @@ export class WebshopService {
         console.log("data: " + JSON.stringify(data, null, 2));
         if(users.length == 1){
           // user login successful
-          resolve (`${users[0].name} ${users[0].surname}`);
+          return resolve (`${users[0].name} ${users[0].surname}`);
         } else {
-          reject ("fail");
+          return reject ("fail");
         }
       }).catch(err => {
         console.error(err);
-        reject("fail");
+        return reject("fail");
       });
     });
 
@@ -84,11 +84,22 @@ export class WebshopService {
     console.log("put User: " + JSON.stringify(user, null, 2));
     console.log("username: " + this.username);
     console.log("password: " + this.password);
-    // let body = JSON.stringify(user);
-    let body = user;
-    // let params = new HttpParams();
-    // params = params.append('body', JSON.stringify(user));
-    return this.http.put(`${this.url}/rest/users/${this.username}`, body,{
+    // let body = user;
+    // // let params = new HttpParams();
+    // // params = params.append('body', JSON.stringify(user));
+    return this.http.put(`${this.url}/rest/users/${this.username}`, user,{
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+  deleteUser() : Promise<types.Username> {
+    return this.http.delete(`${this.url}/rest/users/${this.username}`, {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
     .toPromise()

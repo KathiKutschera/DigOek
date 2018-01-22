@@ -29,10 +29,10 @@ export class Products {
     swagger
     .addGet (this.getProducts)
     .addGet (this.getProductByID)
-    // .addPut (this.putUserById)
-    // .addPost (this.postUserWithQueryParameter)
+     .addPut (this.putProductById)
+     .addPost (this.postProductWithQueryParameter)
     // .addPost (this.postUsers)
-    // .addDelete (this.deleteUserById)
+     .addDelete (this.deleteProductById)
     swagger.configureDeclaration("Products", {
         description : "Operations about Products",
         produces: ["application/json"]
@@ -135,7 +135,98 @@ export class Products {
       }))
     }
   };
-
+  
+  public putProductById = {
+    'spec': {
+      description : "Operations about Products",
+      path : "/products/{id}",
+      method: "PUT",
+      summary : "Set one Product",
+      notes : "Returns productid",
+      type : "id",
+      nickname : "putProduct",
+      produces : ["application/json"],
+      parameters : [
+        swagger.params.path ("id", "ID of Product", "string"),
+        swagger.params.body("body", 'User as JSON string', "string")
+      ],
+      responseMessages : [
+        { "code": 404, "message": 'id not found' },
+        { "code": 500, "message": 'internal server error'}
+      ]
+    },
+    'action': (req,res) => {
+      if (!req.params.id) {
+        throw swagger.errors.invalid('id');
+      }
+      console.log(JSON.stringify(swagger.params.body, null, 2));
+      this.doPutProductById (req)
+      .then (result => res.send(JSON.stringify(result)))
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
+  
+  public postProductWithQueryParameter = {
+    'spec': {
+      description : "Operations about Products",
+      path : "/products",
+      method: "POST",
+      summary : "Creates a new Product",
+      notes : "Returns productid",
+      type : "product",
+      nickname : "postProduct",
+      produces : ["application/json"],
+      parameters : [
+        swagger.params.body("body", 'User as JSON string', "string")
+      ],
+      responseMessages : [
+        { "code": 500, "message": 'internal server error'}
+      ]
+    },
+    'action': (req,res) => {
+      console.log(JSON.stringify(swagger.params.body, null, 2));
+      this.doPostProduct (req)
+      .then (result => res.send(JSON.stringify(result)))
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
+  
+  
+  public deleteProductById = {
+    'spec': {
+      description : "Operations about Products",
+      path : "/products/{id}",
+      method: "DELETE",
+      summary : "delete the selected Product",
+      notes : "Returns number of deleted Products",
+      type : "count",
+      nickname : "deleteProducts",
+      produces : ["application/json"],
+      parameters : [
+        swagger.params.path("id", "id of Product", "long")
+      ],
+      responseMessages : [{
+        "code": 500,
+        "message": 'internal server error'
+      }]
+    },
+    'action': (req,res) => {
+      this.doDeleteProduct (req)
+      .then (result => {
+          res.send(JSON.stringify(result))
+      })
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
 
 
   ///////////////////////////////////////////////
@@ -235,5 +326,142 @@ export class Products {
       });
     });
   }
+  
+   public doPutProductById (req: Request) : Promise<Types.Id> {
+    return new Promise ((resolve, reject) => {
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
+      if (this.users.userIsAdmin (req)) {
+        // OK
+        let sql = "UPDATE products SET";
+        let params = [];
+        
+        let allFields = ["name", "description", "soldper", "price", "amountavailable", "vatrate", "imagename", "fk_groupid"];
+      let i = 0;
+      let j = 0;
+      for(; i < allFields.length; i++){
+        if(req.body.hasOwnProperty(allFields[i])){
+          if(j != 0){
+            sql += `, `;
+          }
+          sql += ` ${allFields[i]} = $${j+1}` ;
+          params.push(req.body[allFields[i]]);
+          j += 1;
+        }
+      }
+      params.push(req.params.id);
+      sql += ` WHERE pk_productid = $`+(j+1)+';';
+        
+        this.pool
+        .query(sql, params)
+        .then ( _ => resolve ({"pk_productid": req.params.id}))
+        .catch (error => {
+          console.error(sql + " with params "+JSON.stringify (params) + ": " + error.toString());
+          reject (error.toString());
+        })
+      } else {
+        reject ("You have no rights for that action");
+          return;
+        }
+      });
+    }
+    
+    public doPostProduct (req: Request) : Promise<Types.Id> {
+    return new Promise ((resolve, reject) => {
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
+      if (this.users.userIsAdmin (req)) {
+        // OK
+        
+        let requiredFields = ["name", "soldper", "price", "amountavailable", "vatrate", "fk_groupid"];
+
+      for(let i = 0; i < requiredFields.length; i++){
+        if(! req.body.hasOwnProperty(requiredFields[i])){
+          reject(`Missing field: ${requiredFields[i]}` );
+          return;
+        }
+      }
+        
+        let sql = "INSERT INTO products(pk_productid,";
+      let params = [];
+
+        
+        let allFields = ["name", "description", "soldper", "price", "amountavailable", "vatrate", "imagename", "fk_groupid"];
+      let i = 0;
+      let k = 0;
+      for(; i < allFields.length; i++){
+        if(req.body.hasOwnProperty(allFields[i])){
+          if(k != 0){
+            sql += `, `;
+          }
+          sql += ` ${allFields[i]}`;
+          params.push(req.body[allFields[i]]);
+          k += 1;
+        }
+      }
+      sql += `) VALUES( DEFAULT, `;
+      for(let j = 0; j < params.length; j++){
+        if(j != 0){
+          sql += `, `;
+        }
+        sql += `$${j+1}`;
+      }
+
+      sql += `) RETURNING pk_productid`;
+      
+        this.pool
+        .query(sql, params)
+        .then ( res => resolve (res.rows))
+        .catch (error => {
+          console.error(sql + " with params "+JSON.stringify (params) + ": " + error.toString());
+          reject (error.toString());
+        })
+      } else {
+        // only provide own data
+        if (req.params.username && req.params.username != req.auth.user) {
+          reject ("Not your data");
+          return;
+        }
+        req.body.isadmin = false;
+      }
+      });
+    }
+  
+  public doDeleteProduct (req: Request) : Promise<Types.Count> {
+      return new Promise ((resolve, reject) => {
+        if (! req.hasOwnProperty ('auth')) {
+          return reject ("Not logged in");
+        }
+        
+        //check if Admin
+        if (this.users.userIsAdmin (req)) {
+            // OK
+            let sql = "DELETE FROM products where pk_productid = $1 RETURNING *";
+            let params: [number] = [req.params.id];
+            this.pool
+            .query (sql, params)
+            .then (res => {
+              if(res.rows.length == 1){
+                resolve (res.rows);
+              } else {
+                  reject ("No such product");
+                }
+            })
+            .catch (error => {
+              console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+              reject (error.toString());
+            });
+        } else {
+            reject ("Not your data");
+            return;
+        }
+        
+        
+  
+        
+      });
+    }
 
 }
