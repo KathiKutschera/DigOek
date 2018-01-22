@@ -42,6 +42,7 @@ export class WebshopService {
 
   }
 
+  // get Users (by Username?)
   getUsers(username? : string) : Promise<types.User[]> {
     let params = new HttpParams();
     params = params.append('limit', "100");
@@ -61,22 +62,7 @@ export class WebshopService {
     .catch(this.handleError);
   }
 
-
-  getProducts() : Promise<types.Product[]> {
-    let params = new HttpParams();
-    params = params.append('limit', "100");
-    return this.http.get(`${this.url}/rest/products`, {
-      params: params,
-      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
-    })
-    .toPromise()
-    .then((response) => {
-      // console.log(response);
-      return response;
-    })
-    .catch(this.handleError);
-  }
-
+  // put User by Username
   putUser(user: types.User) : Promise<types.Username> {
     if("PW" == user.pwhash){
       user.pwhash = this.password;
@@ -98,6 +84,7 @@ export class WebshopService {
     .catch(this.handleError);
   }
 
+  // delete User
   deleteUser() : Promise<types.Username> {
     return this.http.delete(`${this.url}/rest/users/${this.username}`, {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
@@ -105,6 +92,38 @@ export class WebshopService {
     .toPromise()
     .then((response) => {
       console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+  // register user
+  postRegistration(user: types.User) : Promise<types.Username> {
+    // console.log("put User: " + JSON.stringify(user, null, 2));
+    return this.http.post(`${this.url}/rest/register`, user,{
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+
+
+  // get Products
+  getProducts() : Promise<types.Product[]> {
+    let params = new HttpParams();
+    params = params.append('limit', "100");
+    return this.http.get(`${this.url}/rest/products`, {
+      params: params,
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      // console.log(response);
       return response;
     })
     .catch(this.handleError);

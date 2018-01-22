@@ -18,7 +18,7 @@ class Register {
                 method: "POST",
                 summary: "Post a new Registration",
                 notes: "Returns username",
-                type: "user",
+                type: "username",
                 items: {
                     $ref: "user"
                 },
