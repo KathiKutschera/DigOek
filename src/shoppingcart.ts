@@ -20,8 +20,8 @@ import { Request } from "express-serve-static-core";
 
 export class ShoppingCart {
 
-  private defaultLimit : number = 100;
-  private defaultOffset = 0;
+  // private defaultLimit : number = 100;
+  // private defaultOffset = 0;
 
   constructor (private pool, private users) {
   }
@@ -41,7 +41,7 @@ export class ShoppingCart {
         produces: ["application/json"]
     });
   }
-  
+
   ///////////////////////////////////////////////
   ///
   ///  REST method descriptions
@@ -55,9 +55,9 @@ export class ShoppingCart {
       notes : "Returns cart items",
       type : "array",
       items: {
-        $ref: "cart"
+        $ref: "CartItems"
       },
-      nickname : "getCart",
+      nickname : "getCartItems",
       produces : ["application/json"],
        parameters : [
           swagger.params.path("id", "ID of the user", "long")
@@ -75,7 +75,7 @@ export class ShoppingCart {
       if (isNaN(id)) {
         throw swagger.errors.invalid('id');
       }
-      this.doGetCartItems (req, req.auth, req.params.id)
+      this.doGetCartItems (req, req.auth, id)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
@@ -89,7 +89,7 @@ export class ShoppingCart {
   ///
   ///  DB access methods
 
-     public doGetCartItems (req: Request, auth: Types.Auth, id: number) : Promise<Types.ChartItems> {
+     public doGetCartItems (req: Request, auth: Types.Auth, id: number) : Promise<Types.CartItems> {
     return new Promise ((resolve, reject) => {
       // req.auth, req.params.username
       if (! req.hasOwnProperty ('auth')) {
@@ -113,6 +113,6 @@ export class ShoppingCart {
     });
   }
 
-  
-  
+
+
   }

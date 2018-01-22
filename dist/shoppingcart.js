@@ -3,11 +3,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const swagger = require("swagger-node-express");
 class ShoppingCart {
+    // private defaultLimit : number = 100;
+    // private defaultOffset = 0;
     constructor(pool, users) {
         this.pool = pool;
         this.users = users;
-        this.defaultLimit = 100;
-        this.defaultOffset = 0;
         ///////////////////////////////////////////////
         ///
         ///  REST method descriptions
@@ -20,9 +20,9 @@ class ShoppingCart {
                 notes: "Returns cart items",
                 type: "array",
                 items: {
-                    $ref: "cart"
+                    $ref: "CartItems"
                 },
-                nickname: "getCart",
+                nickname: "getCartItems",
                 produces: ["application/json"],
                 parameters: [
                     swagger.params.path("id", "ID of the user", "long")
@@ -40,7 +40,7 @@ class ShoppingCart {
                 if (isNaN(id)) {
                     throw swagger.errors.invalid('id');
                 }
-                this.doGetCartItems(req, req.auth, req.params.id)
+                this.doGetCartItems(req, req.auth, id)
                     .then(result => res.send(JSON.stringify(result)))
                     .catch(error => res.status(500).send({
                     "code": 500,
