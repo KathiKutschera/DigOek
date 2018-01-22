@@ -293,35 +293,39 @@ class Orders {
             let n = 0;
             let byed = [];
             let amount = [];
-            for (; h < allFieldsSql1.length; h++) {
-                if (req.body.hasOwnProperty(allFieldsSql1[h])) {
-                    if (allFieldsSql1[h] == "pk_orderid") {
-                        console.log("TAG is " + allFieldsSql1[h] + " so im in if and h is " + h);
-                        n++;
-                        if (h != 0) {
-                            sql1 += `, `;
-                            if (h == 4) {
-                                byed.push(req.body[allFieldsSql1[h]]);
-                            }
-                            else if (h == 3) {
-                                amount.push(req.body[allFieldsSql1[h]]);
-                            }
-                        }
-                        sql1 += `fk_pk_orderid`;
-                        params1.push(req.body[allFieldsSql1[h]]);
-                        console.log("pushed paramenter  " + req.body[allFieldsSql1[h]] + "  into sql1");
-                    }
-                    if (allFieldsSql1[h] != "pk_orderid") {
-                        if (h != 0) {
-                            sql1 += `, `;
-                        }
-                        console.log("TAG is " + allFieldsSql1[h] + " and h is " + h);
-                        sql1 += ` ${allFieldsSql1[h]}`;
-                        params1.push(req.body[allFieldsSql1[h]]);
-                        n++;
-                    }
-                }
-            }
+            /////////// FROM BERNHARD (START)
+            /*    for(; h < allFieldsSql1.length; h++){
+                 if(req.body.hasOwnProperty(allFieldsSql1[h])){
+                   if( allFieldsSql1[h] == "pk_orderid" ){
+                       console.log("TAG is " + allFieldsSql1[h] + " so im in if and h is " + h);
+                       n++;
+                       if(h != 0){
+                 sql1 += `, `;
+                 if(h == 4){
+                   byed.push(req.body[allFieldsSql1[h]]);
+                 }
+                 else if(h == 3){
+                   amount.push(req.body[allFieldsSql1[h]]);
+                 }
+                     }
+                     sql1 += `fk_pk_orderid`;
+                     params1.push(req.body[allFieldsSql1[h]]);
+         
+                         console.log("pushed paramenter  " + req.body[allFieldsSql1[h]] +  "  into sql1");
+                   }
+                   
+                    if( allFieldsSql1[h] != "pk_orderid" ){
+                   if(h != 0){
+                     sql1 += `, `;
+                   }
+                   console.log("TAG is " + allFieldsSql1[h] + " and h is " + h);
+                   sql1 += ` ${allFieldsSql1[h]}`;
+                         params1.push(req.body[allFieldsSql1[h]]);
+                   n++;
+                   }
+                 }
+               } */
+            /////////// FROM BERNHARD (END)  
             //get item array and iterate through it
             if (req.body.hasOwnProperty("item")) {
                 let arrayOfItems = req.body["item"];
@@ -340,6 +344,14 @@ class Orders {
                     n++;
                     for (; h < allFieldsSql1.length; h++) {
                         if (currentItem.hasOwnProperty(allFieldsSql1[h])) {
+                            if (allFieldsSql1[h] == "fk_productid") {
+                                byed.push(currentItem[allFieldsSql1[h]]);
+                                console.log("pushed to byed " + currentItem[allFieldsSql1[h]]);
+                            }
+                            if (allFieldsSql1[h] == "amount") {
+                                amount.push(currentItem[allFieldsSql1[h]]);
+                                console.log("pushed to amount " + currentItem[allFieldsSql1[h]]);
+                            }
                             if (h != 0) {
                                 sql1 += `, `;
                             }
@@ -374,17 +386,20 @@ class Orders {
             else {
                 console.log("no ITEMS!! ");
             }
+            /////////// FROM BERNHARD (START)  
             //Update available products
             i = 0;
             for (; i < byed.length; i++) {
                 let sql3 = "UPDATE products SET amountavailable = " +
                     `${amount[i]}` + " WHERE pk_productid=" + `${byed[i]}` + ";";
+                console.log(sql3);
                 this.pool.query(sql3)
                     .catch(error => {
                     console.error(sql3 + ": " + error.toString());
                     reject(error.toString());
                 });
             }
+            /////////// FROM BERNHARD (END)
         });
     }
     doDeleteOrders(req) {
