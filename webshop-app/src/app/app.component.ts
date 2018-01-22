@@ -116,7 +116,6 @@ export class AppComponent {
       console.error(err);
       this.errorMessageAdd = "Username may be taken. Please try another one";
     });
-    // DO REGISTRATION...
   }
 
 

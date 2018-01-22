@@ -40,8 +40,9 @@
       <!-- <button type="button" class="btn btn-secondary btn-lg">{{username}}</button> -->
     </div>
   </div>
+
   <!-- login -->
-  <div class="container-fluid" style="text-align:right" *ngIf="showLogin">
+  <div class="container-fluid" style="text-align:left" *ngIf="showLogin">
     <br/>
     <div>
       <label><b>Username: </b></label>
@@ -53,9 +54,10 @@
       <input type="password" placeholder="Your password" class="form-control input-sm" [(ngModel)]="loginPassword"/>
     </div>
     <br/>
-    <button class="btn btn-outline-success" (click)="showLogin = false; login()">
+    <button class="btn btn-lg btn-block btn-success" (click)="showLogin = false; login()">
       Login <span><i class="fa fa-sign-in" aria-hidden="true"></i></span>
     </button>
+    <br/>
   </div>
   <br *ngIf="info"/>
   <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="info">{{info}}
@@ -64,10 +66,10 @@
     </button>
   </div>
 
+
   <!-- register -->
   <div class="container-fluid" style="text-align:left" *ngIf="showRegister">
     <br/>
-    <!-- TODO: register form-->
     <form>
       <div class="form-group">
         <label><b>Username</b></label>
