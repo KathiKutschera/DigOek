@@ -389,19 +389,33 @@ class Orders {
             /////////// FROM BERNHARD (START)  
             //Update available products
             i = 0;
+            let base = [];
             for (; i < byed.length; i++) {
-                let sql3 = "UPDATE products SET amountavailable = " +
-                    `${amount[i]}` + " WHERE pk_productid=" + `${byed[i]}` + ";";
-                console.log(sql3);
-                this.pool.query(sql3)
+                let sql = "SELECT amountavailable FROM "
+                    + "products WHERE " +
+                    "pk_productid = " + `${byed[i]}` + ";";
+                this.pool
+                    .query(sql)
+                    .then(res => {
+                    let val = res.fields(1) - amount[i];
+                    let sql3 = "UPDATE products SET amountavailable = " +
+                        `${val}` +
+                        " WHERE pk_productid=" + `${byed[i]}` + ";";
+                    console.log(sql3);
+                    this.pool.query(sql3)
+                        .catch(error => {
+                        console.error(sql3 + ": " + error.toString());
+                        reject(error.toString());
+                    });
+                })
                     .catch(error => {
-                    console.error(sql3 + ": " + error.toString());
+                    console.error(sql + ": " + error.toString());
                     reject(error.toString());
                 });
             }
-            /////////// FROM BERNHARD (END)
         });
     }
+    /////////// FROM BERNHARD (END)
     doDeleteOrders(req) {
         return new Promise((resolve, reject) => {
             if (!req.hasOwnProperty('auth')) {
@@ -427,6 +441,9 @@ class Orders {
     }
     doPutOrdersByID(req, auth, id) {
         return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
             let sql = "UPDATE orders SET paymentstate = '"
                 + req.params.paymentstate + "', paymentmethod = '"
                 + req.params.paymentmethod + "'";
