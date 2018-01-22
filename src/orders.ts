@@ -544,7 +544,7 @@ export class Orders {
               }
           })
           .catch (error => {
-            console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+            console.error(sql + ": " + error.toString());
             reject (error.toString());
           })
           .then (resolve (id));
