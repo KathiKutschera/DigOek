@@ -31,6 +31,8 @@ export class AppComponent {
     this.webshopService.configureEndpoint("http://localhost:8088");
   }
 
+  // on init : get products....
+
   login() {
     let result : string;
     this.webshopService.configureUser(this.loginUsername, this.loginPassword).then((data) =>{
