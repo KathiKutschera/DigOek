@@ -41,10 +41,7 @@ export class ShoppingCart {
         produces: ["application/json"]
     });
   }
-
-
-
-
+  
   ///////////////////////////////////////////////
   ///
   ///  REST method descriptions
@@ -52,20 +49,18 @@ export class ShoppingCart {
   public getCartItems = {
     'spec': {
       description : "Operations about shopping cart",
-      path : "/cart/{userid}",
+      path : "/cart/{id}",
       method: "GET",
       summary : "Get cart for specific user",
-      notes : "Returns cart",
+      notes : "Returns cart items",
       type : "array",
       items: {
         $ref: "cart"
       },
       nickname : "getCart",
       produces : ["application/json"],
-      parameters : [
-        // swagger.params.query ("username", "Name of User to be fetched", "string", false),
-        swagger.params.query ("limit", "Limit number of results", "number", false, null, this.defaultLimit),
-        swagger.params.query ("offset", "Use together with 'limit' for paging", "number", false, null, 0)
+       parameters : [
+          swagger.params.path("id", "ID of the user", "long")
         ],
       responseMessages : [{
         "code": 500,
@@ -73,10 +68,15 @@ export class ShoppingCart {
       }]
     },
     'action': (req,res) => {
-      this.doGetCartItems (req, req.auth, req.query.limit, req.query.offset)
-      .then (result => {
-          res.send(JSON.stringify(result))
-      })
+       if (!req.params.id) {
+        throw swagger.errors.invalid('id');
+      }
+      let id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw swagger.errors.invalid('id');
+      }
+      this.doGetCartItems (req, req.auth, req.params.id)
+      .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
          "message": error
@@ -89,7 +89,7 @@ export class ShoppingCart {
   ///
   ///  DB access methods
 
-     public doGetCartItems (req: Request, auth: Types.Auth, id: number) : Promise<Types.ChartItems[]> {
+     public doGetCartItems (req: Request, auth: Types.Auth, id: number) : Promise<Types.ChartItems> {
     return new Promise ((resolve, reject) => {
       // req.auth, req.params.username
       if (! req.hasOwnProperty ('auth')) {
