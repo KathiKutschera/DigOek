@@ -192,7 +192,7 @@ export class Orders {
       path : "/orders/{id}",
       method: "PUT",
       summary : "Put one specific Order",
-      notes : "Returns one Order",
+      notes : "Returns the orderID",
       type : "order",
       nickname : "putOrdersByID",
       produces : ["application/json"],
@@ -546,7 +546,8 @@ export class Orders {
           .catch (error => {
             console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
             reject (error.toString());
-          });
+          })
+          .then (resolve (id));
         });
       }
   
