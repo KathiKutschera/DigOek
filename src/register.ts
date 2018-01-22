@@ -42,7 +42,7 @@ export class Register {
       method: "POST",
       summary : "Post a new Registration",
       notes : "Returns username",
-      type : "user",
+      type : "username",
       items: {
         $ref: "user"
       },
@@ -87,11 +87,11 @@ export class Register {
           return;
         }
       }
-      
+
       let sql = "INSERT INTO users(";
       let params = [];
 
-        
+
         let allFields = ["pk_username", "pwhash", "email", "name", "surname", "companyname", "billingaddress", "deliveryaddress", "vat", "nameoncc", "creditcardnr", "validyear", "validmonth", "ccv"];
       let i = 0;
       for(; i < allFields.length; i++){
@@ -119,7 +119,7 @@ export class Register {
       }
 
       sql += `)`;
-    
+
       this.pool
       .query (sql, params)
       .catch (error => {

@@ -66,11 +66,11 @@
     </div>
     <div class="form-group">
       <label><b>Creditcard Validyead</b></label>
-      <input type="number" class="form-control" name="pValidYear" [(ngModel)]="user.validyear">
+      <input type="number" class="form-control" name="pValidYear" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="user.validyear">
     </div>
     <div class="form-group">
       <label><b>Creditcard Validmonth</b></label>
-      <input type="number" class="form-control" name="pValidMonth" [(ngModel)]="user.validmonth">
+      <input type="number" class="form-control" min="0" max="12" ngMin="0" ngMax="12" name="pValidMonth" [(ngModel)]="user.validmonth">
     </div>
     <div class="form-group">
       <label><b>Creditcard CCV</b></label>

@@ -40,8 +40,9 @@
       <!-- <button type="button" class="btn btn-secondary btn-lg">{{username}}</button> -->
     </div>
   </div>
+
   <!-- login -->
-  <div class="container-fluid" style="text-align:right" *ngIf="showLogin">
+  <div class="container-fluid" style="text-align:left" *ngIf="showLogin">
     <br/>
     <div>
       <label><b>Username: </b></label>
@@ -53,9 +54,10 @@
       <input type="password" placeholder="Your password" class="form-control input-sm" [(ngModel)]="loginPassword"/>
     </div>
     <br/>
-    <button class="btn btn-outline-success" (click)="showLogin = false; login()">
+    <button class="btn btn-lg btn-block btn-success" (click)="showLogin = false; login()">
       Login <span><i class="fa fa-sign-in" aria-hidden="true"></i></span>
     </button>
+    <br/>
   </div>
   <br *ngIf="info"/>
   <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="info">{{info}}
@@ -64,10 +66,88 @@
     </button>
   </div>
 
+
   <!-- register -->
-  <div class="container-fluid" style="text-align:right" *ngIf="showRegister">
+  <div class="container-fluid" style="text-align:left" *ngIf="showRegister">
     <br/>
-    <!-- TODO: register form-->
+    <form>
+      <div class="form-group">
+        <label><b>Username</b></label>
+        <input type="text" class="form-control" name="aName" required [(ngModel)]="newUser.pk_username">
+      </div>
+      <div class="form-group">
+        <label><b>Name</b></label>
+        <input type="text" class="form-control" name="aName" [(ngModel)]="newUser.name">
+      </div>
+      <div class="form-group">
+        <label><b>Surname</b></label>
+        <input type="text" class="form-control" name="aSurname" [(ngModel)]="newUser.surname">
+      </div>
+      <div class="form-group">
+        <label><b>Email address</b></label>
+        <input type="email" class="form-control" name="aEmail" required [(ngModel)]="newUser.email">
+      </div>
+      <div class="form-group">
+        <label><b>New Password</b></label>
+        <input type="password" class="form-control" name="aPW1" required [(ngModel)]="newUserPW1">
+      </div>
+      <div class="form-group">
+        <label><b>Repeat Password</b></label>
+        <input type="password" class="form-control" name="aPW2" required [(ngModel)]="newUserPW2">
+      </div>
+      <div class="form-group">
+        <label><b>Company-Name</b></label>
+        <input type="text" class="form-control" name="aCompanyName" [(ngModel)]="newUser.companyname">
+      </div>
+      <div class="form-group">
+        <label><b>Billing Address</b></label>
+        <input type="text" class="form-control" name="aBillingAddress" [(ngModel)]="newUser.billingaddress">
+      </div>
+      <div class="form-group">
+        <label><b>Delivery Address</b></label>
+        <input type="text" class="form-control" name="aDeliveryAddress" [(ngModel)]="newUser.deliveryaddress">
+      </div>
+      <div class="form-group">
+        <label><b>VAT</b></label>
+        <input type="text" class="form-control" name="aVat" [(ngModel)]="newUser.vat">
+      </div>
+      <div class="form-group">
+        <label><b>Name on Credit Card</b></label>
+        <input type="text" class="form-control" name="aNameOnCC" [(ngModel)]="newUser.nameoncc">
+      </div>
+      <div class="form-group">
+        <label><b>Creditcard Number</b></label>
+        <input type="text" class="form-control" name="aCCNr" [(ngModel)]="newUser.creditcardnr">
+      </div>
+      <div class="form-group">
+        <label><b>Creditcard Validyear</b></label>
+        <input type="number" class="form-control" name="aValidYear" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="newUser.validyear">
+      </div>
+      <div class="form-group">
+        <label><b>Creditcard Validmonth</b></label>
+        <input type="number" class="form-control" name="aValidMonth" min="0" max="12" ngMin="0" ngMax="12" [(ngModel)]="newUser.validmonth">
+      </div>
+      <div class="form-group">
+        <label><b>Creditcard CCV</b></label>
+        <input type="number" class="form-control" name="aNameOnCC" [(ngModel)]="newUser.ccv">
+      </div>
+      <br *ngIf="errorMessageAdd"/>
+      <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessageAdd">{{errorMessageAdd}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="errorMessageAdd = ''">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <br *ngIf="successMessageAdd"/>
+      <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="successMessageAdd">{{successMessageAdd}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="successMessageAdd = ''">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <button type="button" class="btn btn-lg btn-block btn-success" (click)="register()">Register
+        <span><i class="fa fa-user-plus" aria-hidden="true"></i></span>
+      </button>
+    </form>
+    <br/>
   </div>
 
   <div class="container-fluid" style="text-align:left">

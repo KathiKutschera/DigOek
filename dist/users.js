@@ -1,13 +1,5 @@
 "use strict";
 // admin-related
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const swagger = require("swagger-node-express");
 // Needed for password check
@@ -415,25 +407,25 @@ class Users {
                 .then(_ => resolve({ "pk_username": req.params.username }));
         });
     }
-    doPostUsers(auth, users) {
-        return __awaiter(this, void 0, void 0, function* () {
-            // if (!auth) {
-            //   // this cannot happen
-            //   return Promise.reject ("No permissions");
-            // }
-            let admin = this.userIsAdmin(auth.user);
-            let maxid = 0;
-            for (let i = 0; i < this.fakedUserDB.length; i++) {
-                maxid = Math.max(maxid, this.fakedUserDB[i].id);
-            }
-            let ids = [];
-            for (let u = 0; u < users.length; u++) {
-                maxid++;
-                ids.push(yield this.doPutUserById(auth, maxid, users[u].username, users[u].passwordhash, users[u].isadmin && admin));
-            }
-            return Promise.resolve(ids);
-        });
-    }
+    // public async doPostUsers (auth: Types.Auth, users: Types.User[]) : Promise<Types.Id[]> {
+    //     // if (!auth) {
+    //     //   // this cannot happen
+    //     //   return Promise.reject ("No permissions");
+    //     // }
+    //     let admin = this.userIsAdmin (auth.user);
+    //     let maxid = 0;
+    //     for (let i = 0; i < this.fakedUserDB.length; i++) {
+    //       maxid = Math.max (maxid, this.fakedUserDB[i].id);
+    //     }
+    //     let ids : Types.Id[] = [];
+    //     for (let u = 0; u < users.length; u++){
+    //       maxid++;
+    //       ids.push (
+    //         await this.doPutUserById (auth, maxid, users[u].username, users[u].passwordhash, users[u].isadmin && admin)
+    //       );
+    //     }
+    //     return Promise.resolve (ids);
+    // }
     doDeleteUserByUserName(req) {
         return new Promise((resolve, reject) => {
             if (!req.hasOwnProperty('auth')) {
@@ -450,32 +442,6 @@ class Users {
                 }
                 // req.body.isadmin = false;
             }
-            // // get amount of not paid orders
-            // let sql1 = "SELECT COUNT(paymentstate) FROM orders WHERE orders.fk_username = $1 AND paymentstate = 'open'";
-            // let params1 : [string] = [req.params.username];
-            // this.pool
-            // .query (sql1, params1)
-            // .then (res => {
-            //   if(res.rows.length == 1){
-            //     console.log(res.rows[0].count);
-            //     if(res.rows[0].count == 0){
-            //       // delete user
-            //     } else {
-            //     reject ("There are open bills. User cannot be deleted when having open bills.")
-            //     return;
-            //   }
-            //   } else {
-            //       reject ("No such user");
-            //       return;
-            //     }
-            // })
-            // .catch (error => {
-            //   console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
-            //   reject (error.toString());
-            //   return;
-            // });
-            // DELETE FROM users where pk_username='paul.meier' AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) where users.pk_username = 'paul.meier' and paymentstate='open') = 0;
-            // DELETE FROM users where pk_username='hubers.restaurant' and (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) where users.pk_username = 'hubers.restaurant' and paymentstate='open') = 0;
             let sql = "DELETE FROM users where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
             let params = [req.params.username];
             this.pool
@@ -494,6 +460,32 @@ class Users {
             });
         });
     }
+    // // get amount of not paid orders
+    // let sql1 = "SELECT COUNT(paymentstate) FROM orders WHERE orders.fk_username = $1 AND paymentstate = 'open'";
+    // let params1 : [string] = [req.params.username];
+    // this.pool
+    // .query (sql1, params1)
+    // .then (res => {
+    //   if(res.rows.length == 1){
+    //     console.log(res.rows[0].count);
+    //     if(res.rows[0].count == 0){
+    //       // delete user
+    //     } else {
+    //     reject ("There are open bills. User cannot be deleted when having open bills.")
+    //     return;
+    //   }
+    //   } else {
+    //       reject ("No such user");
+    //       return;
+    //     }
+    // })
+    // .catch (error => {
+    //   console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+    //   reject (error.toString());
+    //   return;
+    // });
+    // DELETE FROM users where pk_username='paul.meier' AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) where users.pk_username = 'paul.meier' and paymentstate='open') = 0;
+    // DELETE FROM users where pk_username='hubers.restaurant' and (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) where users.pk_username = 'hubers.restaurant' and paymentstate='open') = 0;
     ///////////////////////////////////////////////
     ///
     ///  password check, admin check

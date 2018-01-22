@@ -408,25 +408,25 @@ export class Users {
       });
     }
 
-  public async doPostUsers (auth: Types.Auth, users: Types.User[]) : Promise<Types.Id[]> {
-      // if (!auth) {
-      //   // this cannot happen
-      //   return Promise.reject ("No permissions");
-      // }
-      let admin = this.userIsAdmin (auth.user);
-      let maxid = 0;
-      for (let i = 0; i < this.fakedUserDB.length; i++) {
-        maxid = Math.max (maxid, this.fakedUserDB[i].id);
-      }
-      let ids : Types.Id[] = [];
-      for (let u = 0; u < users.length; u++){
-        maxid++;
-        ids.push (
-          await this.doPutUserById (auth, maxid, users[u].username, users[u].passwordhash, users[u].isadmin && admin)
-        );
-      }
-      return Promise.resolve (ids);
-  }
+  // public async doPostUsers (auth: Types.Auth, users: Types.User[]) : Promise<Types.Id[]> {
+  //     // if (!auth) {
+  //     //   // this cannot happen
+  //     //   return Promise.reject ("No permissions");
+  //     // }
+  //     let admin = this.userIsAdmin (auth.user);
+  //     let maxid = 0;
+  //     for (let i = 0; i < this.fakedUserDB.length; i++) {
+  //       maxid = Math.max (maxid, this.fakedUserDB[i].id);
+  //     }
+  //     let ids : Types.Id[] = [];
+  //     for (let u = 0; u < users.length; u++){
+  //       maxid++;
+  //       ids.push (
+  //         await this.doPutUserById (auth, maxid, users[u].username, users[u].passwordhash, users[u].isadmin && admin)
+  //       );
+  //     }
+  //     return Promise.resolve (ids);
+  // }
 
   public doDeleteUserByUserName (req: Request) : Promise<Types.Count> {
     return new Promise ((resolve, reject) => {
@@ -443,7 +443,23 @@ export class Users {
         }
         // req.body.isadmin = false;
       }
-
+      let sql = "DELETE FROM users where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
+      let params: [string | number] = [req.params.username];
+      this.pool
+      .query (sql, params)
+      .then (res => {
+        if(res.rows.length == 1){
+          resolve (res.rows);
+        } else {
+            reject ("Either the user does not exist or there are open bills. User cannot be deleted when having open bills.");
+          }
+      })
+      .catch (error => {
+        console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+        reject (error.toString());
+      });
+    });
+    }
       // // get amount of not paid orders
       // let sql1 = "SELECT COUNT(paymentstate) FROM orders WHERE orders.fk_username = $1 AND paymentstate = 'open'";
       // let params1 : [string] = [req.params.username];
@@ -472,23 +488,7 @@ export class Users {
 
       // DELETE FROM users where pk_username='hubers.restaurant' and (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) where users.pk_username = 'hubers.restaurant' and paymentstate='open') = 0;
 
-      let sql = "DELETE FROM users where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
-      let params: [string | number] = [req.params.username];
-      this.pool
-      .query (sql, params)
-      .then (res => {
-        if(res.rows.length == 1){
-          resolve (res.rows);
-        } else {
-            reject ("Either the user does not exist or there are open bills. User cannot be deleted when having open bills.");
-          }
-      })
-      .catch (error => {
-        console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
-        reject (error.toString());
-      });
-    });
-  }
+
 
 
   ///////////////////////////////////////////////
