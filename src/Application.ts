@@ -25,6 +25,7 @@ import { Users } from "./users";
 import { Register } from './register';
 import { Products } from "./products";
 import { Orders } from "./orders";
+import { ShoppingCart } from "./cart";
 
 export class Application {
 
@@ -156,6 +157,7 @@ export class Application {
   new Products(this.pool, this.users).mount();
   new Orders(this.pool, this.users).mount();
   new Register(this.pool, this.users).mount();
+  new ShoppingCart(this.pool, this.users).mount();
 
   // .... and so on ...
 

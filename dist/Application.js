@@ -18,6 +18,7 @@ const users_1 = require("./users");
 const register_1 = require("./register");
 const products_1 = require("./products");
 const orders_1 = require("./orders");
+const cart_1 = require("./cart");
 class Application {
     constructor(port) {
         // Prepare DB access
@@ -129,6 +130,7 @@ class Application {
         new products_1.Products(this.pool, this.users).mount();
         new orders_1.Orders(this.pool, this.users).mount();
         new register_1.Register(this.pool, this.users).mount();
+        new cart_1.ShoppingCart(this.pool, this.users).mount();
         // .... and so on ...
         /////////////////////////////////////////////////////
         ///
