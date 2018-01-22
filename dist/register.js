@@ -17,7 +17,7 @@ class Register {
                 path: "/register",
                 method: "POST",
                 summary: "Post a new Registration",
-                notes: "Returns username",
+                notes: "Registrates a user and returns his username",
                 type: "username",
                 items: {
                     $ref: "user"
