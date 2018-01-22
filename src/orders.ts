@@ -236,7 +236,8 @@ export class Orders {
 
 
   public doPostOrders (req: Request, auth: Types.Auth, id: number) : Promise<Types.Id> {
-   
+	  
+	    
    return new Promise ((resolve, reject) => {
       if (! req.hasOwnProperty ('auth')) {
         return reject ("Not logged in");
@@ -278,67 +279,98 @@ export class Orders {
 	  	  
 	  sql2 += `) `;
 	  
-	  
-	  // create query for insert into orderitems table
-	   let sql1 = "INSERT INTO orderitems(";
-      let params1 = [];
-	   let allFieldsSql1 = ["pk_orderid", "pk_fk_itemid", "price", "amount", "fk_productid"]
-	   
-	  let h = 0;
-	  let n = 0;
-      for(; h < allFieldsSql1.length; h++){
-        if(req.body.hasOwnProperty(allFieldsSql1[h])){
-		  if( allFieldsSql1[h] == "pk_orderid" ){
-			  console.log("TAG is " + allFieldsSql1[h] + " so im in if and h is " + h);
-			  n++;
-			  if(h != 0){
-				sql1 += `, `;
-			}
-			sql1 += `fk_pk_orderid`;
-            params1.push(req.body[allFieldsSql1[h]]);  
-				console.log("pushed paramenter  " + req.body[allFieldsSql1[h]] +  "  into sql1");
-		  }
-		  
-		   if( allFieldsSql1[h] != "pk_orderid" ){
-			if(h != 0){
-				sql1 += `, `;
-			}
-			console.log("TAG is " + allFieldsSql1[h] + " and h is " + h);
-			 sql1 += ` ${allFieldsSql1[h]}`;
-            params1.push(req.body[allFieldsSql1[h]]);  
-			 n++;
-		   }
-        }
-      }
-	  
-	sql1 += `) VALUES (`;
-      for(let j = 0; j < n; j++){
-        if(j != 0){
-          sql1 += `, `;
-        }
-        sql1 += `$${j+1}`;
-      }
-	  	  
-	  sql1 += `) `;
-	  
-      console.log(sql2);
+	  // check 
+	    console.log(sql2);
       console.log(JSON.stringify(params2));
 	  
-	  console.log(sql1);
-      console.log(JSON.stringify(params1));
-
-		this.pool.query (sql2, params2)
+	  //insert into db
+	  this.pool
+		.query (sql2, params2)
         .catch ( error => {
           console.error(sql2 + " with params "+JSON.stringify (params2) + ": " + error.toString());
           reject (error.toString());
-        })
-		.then(_ => this.pool.query (sql1, params1))
-		.catch ( error => {
-			console.error (sql1 + " with params "+JSON.stringify (params1) + ": " + error.toString());
-			reject (error.toString());
-		})
-        .then ( _ => resolve ({"pk_username": req.body.fk_username}))
-      });
+        });
+	  
+	  // create query for insert into orderitems table
+	  
+	  let p = 0;
+	  let currentItem;
+	  
+	  let sql1 = "INSERT INTO orderitems(";
+      let params1 = [];
+	  let allFieldsSql1 = ["pk_fk_itemid", "price", "amount", "fk_productid"]
+	   
+	  let h = 0;
+	  let n = 0;
+	  
+	  //get item array and iterate through it
+	   if(req.body.hasOwnProperty("item")){
+	    let arrayOfItems = req.body["item"];
+		 for(; p < arrayOfItems.length; p++){
+			 
+			 // reset h, n, parameter and query so that a new query can be made for next item
+			  h=0;
+			  n=0;
+			 sql1 = "INSERT INTO orderitems(";
+			 params1 = [];
+			 
+			  
+			console.log ("ITEMS!! " + JSON.stringify(arrayOfItems[p], null, 2));
+			currentItem = arrayOfItems[p];
+			  
+			  
+			//  console.log("currentItem stelle " + p + " wert is " + currentItem[allFieldsSql1[p]] + "tag ist " + `${allFieldsSql1[p]}`);
+			
+			//add orderID as foreignkey
+			params1.push(req.body["pk_orderid"]);  
+			sql1 += `fk_pk_orderid, `;
+			n++;
+			 
+			 
+			  for(; h < allFieldsSql1.length; h++){
+				if(currentItem.hasOwnProperty(allFieldsSql1[h])){
+	
+					if(h != 0){
+						sql1 += `, `;
+					}
+					console.log("TAG is " + allFieldsSql1[h] + " and h is " + h + "and value is " + currentItem[allFieldsSql1[h]]);
+					 sql1 += ` ${allFieldsSql1[h]}`;
+					params1.push(currentItem[allFieldsSql1[h]]);  
+					 n++;
+					 
+				}
+			  }
+			  
+			  //add $[nr] in VALUES()
+			  sql1 += `) VALUES (`;
+			  for(let j = 0; j < n; j++){
+				if(j != 0){
+				  sql1 += `, `;
+				}
+				sql1 += `$${j+1}`;
+			  }
+				  
+			  sql1 += `) `;
+			  
+			  // check current status of query sql1
+			    console.log(sql1);
+				console.log(JSON.stringify(params1));
+				
+			// make insert query on DB for the current item
+			   this.pool
+			  .query (sql1, params1)
+			  .catch (error => {
+				console.error (sql1 + " with params "+JSON.stringify (params1) + ": " + error.toString());
+				reject (error.toString());
+			  })
+			     .then (resolve ({"pk_username": req.body.fk_username}));			   
+		 }
+	  }
+	  else {
+		  console.log ("no ITEMS!! ");
+	  }
+	  
+	 });
     }
     
     public doDeleteOrders (req: Request) : Promise<Types.Count> {
