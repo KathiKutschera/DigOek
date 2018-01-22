@@ -56,8 +56,8 @@ CREATE TABLE products (
 );
 
 CREATE TABLE products_products(
-    fk_pk_product1 INT REFERENCES products(pk_productID),
-    fk_pk_product2 INT REFERENCES products(pk_productID),
+    fk_pk_product1 INT REFERENCES products(pk_productID) ON DELETE CASCADE,
+    fk_pk_product2 INT REFERENCES products(pk_productID) ON DELETE CASCADE,
     PRIMARY KEY(fk_pk_product1, fk_pk_product2)
 );
 
