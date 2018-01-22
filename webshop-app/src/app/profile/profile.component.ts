@@ -39,7 +39,7 @@ export class ProfileComponent implements OnInit {
 
 
   saveChanges(): void {
-    console.log("user: " + JSON.stringify(this.user));
+    console.log("user: " + JSON.stringify(this.user, null, 2));
     if(this.newPassword){
       if(!this.newPasswordRepeat){
         // display error message

@@ -81,10 +81,14 @@ export class WebshopService {
     if("PW" == user.pwhash){
       user.pwhash = this.password;
     }
-    let params = new HttpParams();
-    params = params.append('body', JSON.stringify(user));
-    return this.http.put(`${this.url}/rest/users/${this.username}`, {
-      params: params,
+    console.log("put User: " + JSON.stringify(user, null, 2));
+    console.log("username: " + this.username);
+    console.log("password: " + this.password);
+    // let body = JSON.stringify(user);
+    let body = user;
+    // let params = new HttpParams();
+    // params = params.append('body', JSON.stringify(user));
+    return this.http.put(`${this.url}/rest/users/${this.username}`, body,{
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
     .toPromise()

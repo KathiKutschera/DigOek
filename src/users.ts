@@ -155,6 +155,7 @@ export class Users {
       if (!req.params.username) {
         throw swagger.errors.invalid('username');
       }
+      console.log(JSON.stringify(swagger.params.body, null, 2));
       this.doPutUserByUserName (req)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
