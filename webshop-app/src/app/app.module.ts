@@ -11,7 +11,7 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 
-import { RouterModule, Routes } from '@angular/router';
+import { RouterModule, Routes, ActivatedRoute } from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { CategoryComponent } from './category/category.component';
@@ -23,11 +23,12 @@ import { HomeComponent } from './home/home.component';
 import { SearchComponent } from './search/search.component';
 
 const appRoutes: Routes = [
-  { path: 'category', component: CategoryComponent },
+  { path: 'category/:id', component: CategoryComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'shoppingcart', component: ShoppingcartComponent },
   { path: 'home', component: HomeComponent },
   { path: 'search', component: SearchComponent },
+  { path: 'search/:term', component: SearchComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' }
   // ,{ path: 'hero/:id',      component: HeroDetailComponent },
   // {

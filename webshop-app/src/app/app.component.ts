@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { WebshopService } from './webshop.service';
 
+import { RouterModule, Router } from "@angular/router";
+
 import * as types from './types';
 
 @Component({
@@ -23,7 +25,8 @@ export class AppComponent {
   successMessageAdd : string = undefined;
 
   constructor(
-    private webshopService: WebshopService
+    private webshopService: WebshopService,
+    private router: Router
   ) {
     this.webshopService.configureEndpoint("http://localhost:8088");
   }
@@ -70,27 +73,27 @@ export class AppComponent {
       console.log("No or not both passwords");
       return;
     }
-    if(!(this.newUserPW1 == this.newUserPW2)){
+    if(this.newUserPW1 != this.newUserPW2){
       this.errorMessageAdd = "The password and the repeated password you provided do not match. Please fix that and try again."
       console.log("No mathing passwords");
       return;
     }
     if(this.newUser.validyear){
-      if(!(isNaN(this.newUser.validyear)) || (!(this.newUser.validyear > 0))){
+      if(isNaN(this.newUser.validyear) || (this.newUser.validyear < 2018) || (this.newUser.validyear > 2025)) {
         this.errorMessageAdd = "The year till that your credit card is valid to needs to be a number. Please fix that and try again."
         console.log("Valid year is violates the rules");
         return;
       }
     }
     if(this.newUser.validmonth) {
-      if(!(isNaN(this.newUser.validmonth)) || (!(this.newUser.validmonth > 0)) || (!(this.newUser.validmonth < 13))){
+      if(isNaN(this.newUser.validmonth) || (this.newUser.validmonth < 1) || (this.newUser.validmonth > 12)){
         this.errorMessageAdd = "The month till that your credit card is valid to needs to be a number between 1 and 12. Please fix that and try again."
         console.log("Validmonth is violates the rules");
         return;
       }
     }
     if(this.newUser.ccv) {
-      if(!(isNaN(this.newUser.ccv)) || (!(this.newUser.ccv > 0))){
+      if(isNaN(this.newUser.ccv) || (this.newUser.ccv < 0)){
         this.errorMessageAdd = "The ccv of your credit card needs to be a number. Please fix that and try again."
         console.log("CCV violates the rules");
         return;
@@ -117,6 +120,10 @@ export class AppComponent {
       this.errorMessageAdd = "Username may be taken. Please try another one";
     });
   }
+
+  // goToCategory(id: number) : void{
+  //   this.router.navigate(['category', id]);
+  // }
 
 
 }
