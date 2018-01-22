@@ -49,33 +49,26 @@ export class ShoppingCart {
   public getCartItems = {
     'spec': {
       description : "Operations about shopping cart",
-      path : "/cart/{id}",
+      path : "/cart/{username}",
       method: "GET",
       summary : "Get cart for specific user",
       notes : "Returns cart items",
-      type : "array",
-      items: {
-        $ref: "CartItems"
-      },
+      type : "cart",
       nickname : "getCartItems",
       produces : ["application/json"],
        parameters : [
-          swagger.params.path("id", "ID of the user", "long")
+          swagger.params.path("username", "username of the user", "string")
         ],
-      responseMessages : [{
-        "code": 500,
-        "message": 'internal server error'
-      }]
+      responseMessages : [  
+	  { "code": 400, "message": 'invalid name' },
+        { "code": 500, "message": 'internal server error'}]
     },
     'action': (req,res) => {
-       if (!req.params.id) {
-        throw swagger.errors.invalid('id');
+       if (!req.params.username) {
+        throw swagger.errors.invalid('username');
       }
-      let id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        throw swagger.errors.invalid('id');
-      }
-      this.doGetCartItems (req, req.auth, id)
+     
+      this.doGetCartItems (req)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
@@ -89,21 +82,21 @@ export class ShoppingCart {
   ///
   ///  DB access methods
 
-     public doGetCartItems (req: Request, auth: Types.Auth, id: number) : Promise<Types.CartItems> {
+     public doGetCartItems (req: Request) : Promise<Types.CartItems[]> {
     return new Promise ((resolve, reject) => {
-      // req.auth, req.params.username
       if (! req.hasOwnProperty ('auth')) {
         return reject ("Not logged in");
       }
       let sql = "SELECT * FROM shoppingcartitems where fk_pk_username = $1";
-      let params: [number] = [id];
+	  console.log("this is the query" + sql);
+      let params: [string | number] = [req.params.username];
       this.pool
       .query (sql, params)
       .then (res => {
-        if(res.rows.length == 1){
+        if(res.rows.length >= 1){
           resolve (res.rows);
         } else {
-            reject ("Cart not found");
+            reject ("no cart");
           }
       })
       .catch (error => {

@@ -147,7 +147,7 @@ class Orders {
                 path: "/orders/{id}",
                 method: "PUT",
                 summary: "Put one specific Order",
-                notes: "Returns one Order",
+                notes: "Returns the orderID",
                 type: "order",
                 nickname: "putOrdersByID",
                 produces: ["application/json"],
@@ -397,7 +397,7 @@ class Orders {
                 this.pool
                     .query(sql)
                     .then(res => {
-                    let val = res.fields(1) - amount[i];
+                    let val = res.rows[0].amountavailable - amount[i];
                     let sql3 = "UPDATE products SET amountavailable = " +
                         `${val}` +
                         " WHERE pk_productid=" + `${byed[i]}` + ";";
@@ -461,7 +461,8 @@ class Orders {
                 .catch(error => {
                 console.error(sql + " with params " + JSON.stringify(params) + ": " + error.toString());
                 reject(error.toString());
-            });
+            })
+                .then(resolve(id));
         });
     }
 }

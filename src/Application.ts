@@ -93,7 +93,7 @@ export class Application {
   // subpath.use (ba);
   subpath.use ((req, res, next) => {
     if (req.method == 'GET') {
-      if ((req.path.startsWith('/users')) || (req.path.startsWith('/orders'))) {
+      if ((req.path.startsWith('/users')) || (req.path.startsWith('/orders')) || (req.path.startsWith('/cart'))) {
         ba(req, res, next);
       } else {
         // no login needed
