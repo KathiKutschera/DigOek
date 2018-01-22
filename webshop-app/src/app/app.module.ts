@@ -20,12 +20,14 @@ import { ShoppingcartComponent } from './shoppingcart/shoppingcart.component';
 
 import { WebshopService } from './webshop.service';
 import { HomeComponent } from './home/home.component';
+import { SearchComponent } from './search/search.component';
 
 const appRoutes: Routes = [
   { path: 'category', component: CategoryComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'shoppingcart', component: ShoppingcartComponent },
   { path: 'home', component: HomeComponent },
+  { path: 'search', component: SearchComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' }
   // ,{ path: 'hero/:id',      component: HeroDetailComponent },
   // {
@@ -46,7 +48,8 @@ const appRoutes: Routes = [
     CategoryComponent,
     ProfileComponent,
     ShoppingcartComponent,
-    HomeComponent
+    HomeComponent,
+    SearchComponent
   ],
   imports: [
     BrowserModule,
