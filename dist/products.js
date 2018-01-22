@@ -582,6 +582,99 @@ class Products {
             });
         });
     }
+    doPutProductGroupById(req) {
+        return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
+            if (this.users.userIsAdmin(req)) {
+                // OK
+                let sql = "UPDATE productgroups SET";
+                let params = [];
+                let allFields = ["description", "name", "iconclass"];
+                let i = 0;
+                let j = 0;
+                for (; i < allFields.length; i++) {
+                    if (req.body.hasOwnProperty(allFields[i])) {
+                        if (j != 0) {
+                            sql += `, `;
+                        }
+                        sql += ` ${allFields[i]} = $${j + 1}`;
+                        params.push(req.body[allFields[i]]);
+                        j += 1;
+                    }
+                }
+                params.push(req.params.id);
+                sql += ` WHERE pk_groupid = $` + (j + 1) + ';';
+                this.pool
+                    .query(sql, params)
+                    .then(_ => resolve({ "pk_groupid": req.params.id }))
+                    .catch(error => {
+                    console.error(sql + " with params " + JSON.stringify(params) + ": " + error.toString());
+                    reject(error.toString());
+                });
+            }
+            else {
+                reject("You have no rights for that action");
+                return;
+            }
+        });
+    }
+    doPostProductGroup(req) {
+        return new Promise((resolve, reject) => {
+            if (!req.hasOwnProperty('auth')) {
+                return reject("Not logged in");
+            }
+            if (this.users.userIsAdmin(req)) {
+                // OK
+                let requiredFields = ["name"];
+                for (let i = 0; i < requiredFields.length; i++) {
+                    if (!req.body.hasOwnProperty(requiredFields[i])) {
+                        reject(`Missing field: ${requiredFields[i]}`);
+                        return;
+                    }
+                }
+                let sql = "INSERT INTO productgroups(pk_groupid,";
+                let params = [];
+                let allFields = ["description", "name", "iconclass"];
+                let i = 0;
+                let k = 0;
+                for (; i < allFields.length; i++) {
+                    if (req.body.hasOwnProperty(allFields[i])) {
+                        if (k != 0) {
+                            sql += `, `;
+                        }
+                        sql += ` ${allFields[i]}`;
+                        params.push(req.body[allFields[i]]);
+                        k += 1;
+                    }
+                }
+                sql += `) VALUES( DEFAULT, `;
+                for (let j = 0; j < params.length; j++) {
+                    if (j != 0) {
+                        sql += `, `;
+                    }
+                    sql += `$${j + 1}`;
+                }
+                sql += `) RETURNING pk_groupid`;
+                this.pool
+                    .query(sql, params)
+                    .then(res => resolve(res.rows))
+                    .catch(error => {
+                    console.error(sql + " with params " + JSON.stringify(params) + ": " + error.toString());
+                    reject(error.toString());
+                });
+            }
+            else {
+                // only provide own data
+                if (req.params.username && req.params.username != req.auth.user) {
+                    reject("Not your data");
+                    return;
+                }
+                req.body.isadmin = false;
+            }
+        });
+    }
 }
 exports.Products = Products;
 //# sourceMappingURL=products.js.map
