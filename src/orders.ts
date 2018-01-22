@@ -348,7 +348,7 @@ export class Orders {
     let amount = [];
 
 	/////////// FROM BERNHARD (START)
-      for(; h < allFieldsSql1.length; h++){
+   /*    for(; h < allFieldsSql1.length; h++){
         if(req.body.hasOwnProperty(allFieldsSql1[h])){
 		  if( allFieldsSql1[h] == "pk_orderid" ){
 			  console.log("TAG is " + allFieldsSql1[h] + " so im in if and h is " + h);
@@ -378,7 +378,7 @@ export class Orders {
           n++;
           }
         }
-      }
+      } */
 		/////////// FROM BERNHARD (END)  
 	  
 	  //get item array and iterate through it
@@ -407,7 +407,15 @@ export class Orders {
 			 
 			  for(; h < allFieldsSql1.length; h++){
 				if(currentItem.hasOwnProperty(allFieldsSql1[h])){
-	
+				 if( allFieldsSql1[h] == "fk_productid" ){
+						byed.push(currentItem[allFieldsSql1[h]]);
+						console.log ("pushed to byed " + currentItem[allFieldsSql1[h]]);
+					}
+					if(allFieldsSql1[h] == "amount"){
+						amount.push(currentItem[allFieldsSql1[h]]);
+						console.log ("pushed to amount " + currentItem[allFieldsSql1[h]]);
+					}
+					
 					if(h != 0){
 						sql1 += `, `;
 					}
@@ -455,6 +463,9 @@ export class Orders {
         for(;i < byed.length; i++){
           let sql3 = "UPDATE products SET amountavailable = " + 
           `${amount[i]}` + " WHERE pk_productid="+`${byed[i]}`+";";
+		  
+		  console.log(sql3);
+		  
             this.pool.query (sql3)
               .catch ( error => {
                 console.error(sql3 + ": " + error.toString());
