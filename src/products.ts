@@ -29,8 +29,12 @@ export class Products {
     swagger
     .addGet (this.getProducts)
     .addGet (this.getProductByID)
+    .addGet (this.getProductGroupById)
+    .addGet (this.getProductGroups)
      .addPut (this.putProductById)
-     .addPost (this.postProductWithQueryParameter)
+     .addPut (this.putProductGroupById)
+     .addPost (this.postProduct)
+     .addPost (this.postProductGroup)
     // .addPost (this.postUsers)
      .addDelete (this.deleteProductById)
     swagger.configureDeclaration("Products", {
@@ -169,7 +173,7 @@ export class Products {
     }
   };
   
-  public postProductWithQueryParameter = {
+  public postProduct = {
     'spec': {
       description : "Operations about Products",
       path : "/products",
@@ -221,6 +225,130 @@ export class Products {
       .then (result => {
           res.send(JSON.stringify(result))
       })
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
+  
+  ///////Groups
+  
+  public getProductGroups = {
+    'spec': {
+      description : "Operations about ProductGroups",
+      path : "/groups",
+      method: "GET",
+      summary : "Get all ProductGroups",
+      notes : "Returns all ProductGroups",
+      type : "group",
+      nickname : "getProductGroups",
+      produces : ["application/json"],
+      parameters : [],
+      responseMessages : [
+        { "code": 500, "message": 'internal server error'}
+      ]
+    },
+    'action': (req,res) => {
+      this.doGetProductGroups (req)
+      .then (result => res.send(JSON.stringify(result)))
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
+  
+  
+public getProductGroupById = {
+    'spec': {
+      description : "Operations about ProductGroups",
+      path : "/groups/{id}",
+      method: "GET",
+      summary : "Get one ProductGroup",
+      notes : "Returns one ProductGroup",
+      type : "group",
+      nickname : "getProductGroupByID",
+      produces : ["application/json"],
+      parameters : [
+          swagger.params.path("id", "ID of the group", "long")
+        ],
+      responseMessages : [
+        { "code": 400, "message": 'invalid id' },
+        { "code": 500, "message": 'internal server error'}
+      ]
+    },
+    'action': (req,res) => {
+      if (!req.params.id) {
+        throw swagger.errors.invalid('id');
+      }
+      let id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw swagger.errors.invalid('id');
+      }
+      this.doGetProductGroupByID (req.params.id)
+      .then (result => res.send(JSON.stringify(result)))
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
+  
+  public putProductGroupById = {
+    'spec': {
+      description : "Operations about ProductGroups",
+      path : "/groups/{id}",
+      method: "PUT",
+      summary : "Set one ProductGroup",
+      notes : "Returns groupid",
+      type : "id",
+      nickname : "putProductGroup",
+      produces : ["application/json"],
+      parameters : [
+        swagger.params.path ("id", "ID of ProductGroup", "string"),
+        swagger.params.body("body", 'User as JSON string', "string")
+      ],
+      responseMessages : [
+        { "code": 404, "message": 'id not found' },
+        { "code": 500, "message": 'internal server error'}
+      ]
+    },
+    'action': (req,res) => {
+      if (!req.params.id) {
+        throw swagger.errors.invalid('id');
+      }
+      console.log(JSON.stringify(swagger.params.body, null, 2));
+      this.doPutProductGroupById (req)
+      .then (result => res.send(JSON.stringify(result)))
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
+  
+  public postProductGroup = {
+    'spec': {
+      description : "Operations about ProductGroups",
+      path : "/groups",
+      method: "POST",
+      summary : "Creates a new ProductGroup",
+      notes : "Returns groupid",
+      type : "group",
+      nickname : "postProductGroup",
+      produces : ["application/json"],
+      parameters : [
+        swagger.params.body("body", 'User as JSON string', "string")
+      ],
+      responseMessages : [
+        { "code": 500, "message": 'internal server error'}
+      ]
+    },
+    'action': (req,res) => {
+      console.log(JSON.stringify(swagger.params.body, null, 2));
+      this.doPostProductGroup (req)
+      .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
          "code": 500,
          "message": error
@@ -463,5 +591,43 @@ export class Products {
         
       });
     }
+    
+    //Groups
+    public doGetProductGroupByID (id: number) : Promise<Types.Product> {
+    return new Promise ((resolve, reject) => {
+      let sql = "SELECT * FROM productgroups where pk_groupid = $1";
+      let params: [number] = [id];
+      this.pool
+      .query (sql, params)
+      .then (res => {
+        if(res.rows.length == 1){
+          resolve (res.rows);
+        } else {
+            reject ("No such productgroup");
+          }
+      })
+      .catch (error => {
+        console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+        reject (error.toString());
+      });
+    });
+  }
+  
+  public doGetProductGroups (req: Request) : Promise<Types.Product> {
+    return new Promise ((resolve, reject) => {
+      let sql = "SELECT * FROM productgroups";
+      let params = [];
+      this.pool
+      .query (sql, params)
+      .then (res => {
+          resolve (res.rows);
+      })
+      .catch (error => {
+        console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+        reject (error.toString());
+      });
+    });
+  }
+    
 
 }
