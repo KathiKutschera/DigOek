@@ -78,9 +78,12 @@ export class WebshopService {
   }
 
   putUser(user: types.User) : Promise<types.Username> {
+    if("PW" == user.pwhash){
+      user.pwhash = this.password;
+    }
     let params = new HttpParams();
     params = params.append('body', JSON.stringify(user));
-    return this.http.get(`${this.url}/rest/users/${this.username}`, {
+    return this.http.put(`${this.url}/rest/users/${this.username}`, {
       params: params,
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
