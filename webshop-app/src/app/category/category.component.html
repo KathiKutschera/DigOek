@@ -1,11 +1,14 @@
-<p>
-  category works!
-</p>
-<!-- <div class="container-fluid">
+<h5 *ngIf="noProducts">
+  We are sorry, but currently there no products available within that group.
+</h5>
+
+<br *ngIf="errorMessage"/>
+
+<div class="container-fluid">
     <div class="card-group">
       <div class="card" *ngFor="let product of products; index as i">
         <div class="text-center">
-          <img class="card-img-top" src="./assets/{{product.imageName}}" alt="Image of {{product.name}}">
+          <img class="card-img-top" src="./public/images/{{product.imageName}}" alt="Image of {{product.name}}">
         </div>
         <div class="card-block">
           <h4 class="card-title">{{product.name}}</h4>
@@ -15,13 +18,15 @@
           <li class="list-group-item">per {{product.soldper}}</li>
           <li class="list-group-item">Price: {{product.price}}&euro;</li>
           <li class="list-group-item">
-              <form class="form-inline my-2 my-lg-0">
+              <form class="form-inline">
                 <label>Amount:</label>&nbsp;
-                <input class="form-control" type="number" min="0" max="99" ngMin="0" ngMax="99" name="{{product.id}}" [(ngModel)]="product.amount"/>&nbsp;
-                <button type="button" class="btn btn-success" (click)="addProductToShoppingCart()">
-                  <span><i class="fa fa-cart-plus" aria-hidden="true"></i></span>
-                </button>
+                <input class="form-control" type="number" min="0" max="99" ngMin="0" ngMax="99" name="{{product.pk_productid}}" [(ngModel)]="product.orderdAmount"/>&nbsp;
               </form>
+          </li>
+          <li class="list-group-item">
+            <button type="button" class="btn btn-success" (click)="addProductToShoppingCart()">
+              <span><i class="fa fa-cart-plus" aria-hidden="true"></i></span>
+            </button>
           </li>
         </ul>
         <div class="card-footer">
@@ -31,4 +36,4 @@
       </div>
     </div>
     <br/>
-  </div> -->
+  </div>

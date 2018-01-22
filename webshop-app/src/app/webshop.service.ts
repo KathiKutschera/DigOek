@@ -119,9 +119,12 @@ export class WebshopService {
 
 
   // get Products
-  getProducts() : Promise<types.Product[]> {
+  getProducts(groupid? : number) : Promise<types.Product[]> {
     let params = new HttpParams();
     params = params.append('limit', "100");
+    if(groupid){
+      params = params.append('groupid', groupid.toString());
+    }
     return this.http.get(`${this.url}/rest/products`, {
       params: params,
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
@@ -137,10 +140,7 @@ export class WebshopService {
 
   // get Productgroups
   getProductGroups() : Promise<types.Productgroup[]> {
-    let params = new HttpParams();
-    params = params.append('limit', "100");
-    return this.http.get(`${this.url}/rest/group`, {
-      params: params,
+    return this.http.get(`${this.url}/rest/groups`, {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
     .toPromise()

@@ -13,8 +13,10 @@ import { Routes, RouterModule, Router, ActivatedRoute } from "@angular/router"
 export class CategoryComponent implements OnInit {
 
   products : types.Product[] = [];
-  id : number;
-  foo: string;
+  // id : number;
+  // foo: string;
+  errorMessage: string = undefined;
+  noProducts: boolean = false;
 
   constructor(
     private webshopService:WebshopService,
@@ -22,7 +24,7 @@ export class CategoryComponent implements OnInit {
   ) {
       this.route.params.subscribe( params => {
         console.log("PARAMS: " + JSON.stringify(params, null, 2));
-        this.getProductsOfCategory(params['id']);
+        this.getProductsOfCategory(+params['id']);
       });
     }
 
@@ -33,9 +35,25 @@ export class CategoryComponent implements OnInit {
     // }).catch(err => console.error(err));
   }
 
-  getProductsOfCategory(p : string){
+  getProductsOfCategory(p : number){
     console.log("here now.");
     console.log("getProducts: " + p);
+    // getProducts
+
+    this.webshopService.getProducts(p).then((data) => {
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data.length > 0){
+        // seems like everythink worked fine
+        this.products = data;
+        this.noProducts = false;
+      } else {
+        this.products = undefined;
+        this.noProducts = true;
+      }
+    }).catch(err => {
+      console.error(err);
+    });
+
   }
 
 }
