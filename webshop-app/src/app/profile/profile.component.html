@@ -76,6 +76,18 @@
       <label><b>Creditcard CCV</b></label>
       <input type="text" class="form-control" name="pNameOnCC" [(ngModel)]="user.ccv">
     </div>
+    <br *ngIf="errorMessage"/>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">{{errorMessage}}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="errorMessage = ''">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <br *ngIf="successMessage"/>
+    <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="successMessage">{{successMessage}}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="successMessage = ''">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
     <button type="button" class="btn btn-lg btn-block btn-success" (click)="saveChanges()">Save Changes
       <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
     </button>

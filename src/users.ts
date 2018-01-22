@@ -203,8 +203,8 @@ export class Users {
       path : "/users/{username}",
       method: "DELETE",
       summary : "Delete a single User by ID",
-      notes : "Returns number of deleted Users",
-      type : "count",
+      notes : "Returns user which was deleteded",
+      type : "user",
       nickname : "deleteUserByUserName",
       produces : ["application/json"],
       parameters : [
