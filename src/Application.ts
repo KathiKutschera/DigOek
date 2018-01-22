@@ -25,7 +25,7 @@ import { Users } from "./users";
 import { Register } from './register';
 import { Products } from "./products";
 import { Orders } from "./orders";
-import { ShoppingCart } from "./cart";
+import { ShoppingCart } from "./shoppingcart";
 
 export class Application {
 

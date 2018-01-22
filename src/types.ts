@@ -24,6 +24,18 @@ export interface User {
   ccv: number,
 }
 
+export interface Cart {
+  items: CartItems[]
+}
+
+export interface CartItems {
+  pk_cartID : number,
+  amount : number,
+  price : number,
+  fk_pk_userName? : string,
+  fk_pk_productID? : number
+}
+
 export interface Username {
   pk_username: string,
 }
