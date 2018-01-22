@@ -76,21 +76,21 @@ export class AppComponent {
       return;
     }
     if(this.newUser.validyear){
-      if(isNaN(this.newUser.validyear) || (!(this.newUser.validyear > 0))){
+      if(!(isNaN(this.newUser.validyear)) || (!(this.newUser.validyear > 0))){
         this.errorMessageAdd = "The year till that your credit card is valid to needs to be a number. Please fix that and try again."
         console.log("Valid year is violates the rules");
         return;
       }
     }
     if(this.newUser.validmonth) {
-      if(isNaN(this.newUser.validmonth) || (!(this.newUser.validmonth > 0)) || (!(this.newUser.validmonth < 13))){
-        this.errorMessageAdd = "The month till that your credit card is valid to needs to be a number between 0 and 12. Please fix that and try again."
+      if(!(isNaN(this.newUser.validmonth)) || (!(this.newUser.validmonth > 0)) || (!(this.newUser.validmonth < 13))){
+        this.errorMessageAdd = "The month till that your credit card is valid to needs to be a number between 1 and 12. Please fix that and try again."
         console.log("Validmonth is violates the rules");
         return;
       }
     }
     if(this.newUser.ccv) {
-      if(isNaN(this.newUser.ccv) || (!(this.newUser.ccv > 0))){
+      if(!(isNaN(this.newUser.ccv)) || (!(this.newUser.ccv > 0))){
         this.errorMessageAdd = "The ccv of your credit card needs to be a number. Please fix that and try again."
         console.log("CCV violates the rules");
         return;
