@@ -37,13 +37,7 @@ export class AppComponent implements OnInit {
 
   // on init : get products....
   ngOnInit() {
-    this.webshopService.getProductGroups().then((data) => {
-      this.productgroups = data;
-      console.log("data: " + JSON.stringify(data, null, 2));
-      // do something else?
-    }).catch(err => {
-      console.error(err);
-    });
+    this.getProductGroups();
   }
 
   login() {
@@ -133,6 +127,16 @@ export class AppComponent implements OnInit {
     }).catch(err => {
       console.error(err);
       this.errorMessageAdd = "Username may be taken. Please try another one";
+    });
+  }
+
+  getProductGroups(): void {
+    this.webshopService.getProductGroups().then((data) => {
+      this.productgroups = data;
+      console.log("data: " + JSON.stringify(data, null, 2));
+      // do something else?
+    }).catch(err => {
+      console.error(err);
     });
   }
 

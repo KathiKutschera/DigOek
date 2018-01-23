@@ -105,7 +105,27 @@
           {{order.orderdate}}
         </button>
         <div *ngIf="order.showDetails">
-          {{order.pk_orderid}}
+          <p>
+            <b>OrderID: </b>
+            {{order.pk_orderid}}
+          </p>
+          <p *ngIf="order.deliverydate">
+            <b>Delivery date: </b>
+            {{order.deliverydate}}
+          </p>
+          <p>
+            <b>Payment Status: </b>
+            {{order.paymentstate}}
+          </p>
+          <p>
+            <b>Paymentmethod: </b>
+            {{order.paymentmethod}}
+          </p>
+          <p>
+            <b>Overall Price: </b>
+            {{order.price}}
+          </p>
+          <!-- TODO: oderitems when get order is fixed.. -->
         </div>
       </div>
     </div>
