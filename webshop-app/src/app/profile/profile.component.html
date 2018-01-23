@@ -200,6 +200,11 @@
   <div *ngIf="showProductManagement">
     <h4> Products: </h4>
     <br/>
+    <button type="button" class="btn btn-outline-success" (click)="addProduct = true">
+      Add New Product <span><i class="fa fa-plus" aria-hidden="true"></i></span>
+    </button>
+    <!-- TODO: addProduct(p) -->
+    <br/>
     <div class="list-group">
       <div *ngFor="let p of products; index as i">
         <br/>
@@ -222,9 +227,24 @@
           <br/>
           <label><b>Available Amount: </b></label>
           <input class="form-control" type="number" min="0" max="99" ngMin="0" ngMax="99" name="{{p.pk_productid}}" [(ngModel)]="p.amountavailable"/>&nbsp;
+          <br *ngIf="p.errorMessage"/>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="p.errorMessage">{{p.errorMessage}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="p.errorMessage = ''">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <br *ngIf="p.successMessage"/>
+          <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="p.successMessage">{{p.successMessage}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="p.successMessage = ''">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
           <br/>
           <button type="button" class="btn btn-outline-success" (click)="updateProduct(p)">
             SaveChanges <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
+          </button>
+          <button type="button" class="btn btn-outline-danger" (click)="deleteProduct(p)">
+            Delete Product <span><i class="fa fa-trash" aria-hidden="true"></i></span>
           </button>
           <br/> &nbsp;
         </div>

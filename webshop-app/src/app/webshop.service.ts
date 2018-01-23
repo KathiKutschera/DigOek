@@ -193,6 +193,32 @@ export class WebshopService {
   }
 
 
+  // put User by Username
+  putProduct(p: types.Product) : Promise<types.Productid> {
+    return this.http.put(`${this.url}/rest/products/${p.pk_productid}`, p,{
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+  deleteProduct(p : types.Product) : Promise<types.Product> {
+    return this.http.delete(`${this.url}/rest/products/${p.pk_productid}`, {
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+
   private handleError(error: any): Promise<any> {
     console.error('An error occurred', error);
     return Promise.reject(error.message || error);

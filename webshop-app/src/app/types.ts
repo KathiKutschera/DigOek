@@ -80,7 +80,13 @@ export interface Product {
   amountavailable: number,
   vatrate: number,
   imagename: string,
-  orderdAmount: number
+  orderdAmount: number,
+  successMessage? : string,
+  errorMessage? : string
+}
+
+export interface Productid {
+  pk_productid : number
 }
 
 // used by express-basic-auth
