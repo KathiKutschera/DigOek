@@ -350,7 +350,7 @@ export class Orders {
 		  
 		  let sql1 = "INSERT INTO orderitems(";
 		  let params1 = [];
-		  let allFieldsSql1 = ["pk_fk_itemid", "price", "amount", "fk_productid"]
+		  let allFieldsSql1 = ["price", "amount", "fk_productid"]
 		   
 		  let h = 0;
 		  let n = 0;
@@ -379,7 +379,8 @@ export class Orders {
 				//add orderID as foreignkey
                 //got the id after the insert of the order. Don't change it!
 				params1.push(pk_orderid);  
-				sql1 += `fk_pk_orderid, `;
+				sql1 += `fk_pk_orderid, pk_fk_itemid,`;
+                params1.push(p+1);
 				n++;
 				 
 				 
@@ -496,7 +497,7 @@ export class Orders {
 					this.pool
 					.query (sql, params)
 					.then (res => {
-						if(res.rows.length == 1){
+						if(res.rows.length >= 1){
               //Dieser Wert wurde gelöscht --> 
               //Suchen aller dazugehörigen OrderItems, 
               //hinzufügen d. Produktanzahl
