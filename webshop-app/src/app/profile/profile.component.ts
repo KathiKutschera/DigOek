@@ -19,6 +19,8 @@ export class ProfileComponent implements OnInit {
   users : types.User[] = [];
   products : types.Product[] = [];
 
+  newProduct = {pk_productid : "", name : "", prSoldPer : "", price : null, amountavailable : null, vatrate : null};
+
   showPrevOrders : boolean = false;
   showProfileDetails : boolean = true;
   showUserManagement : boolean  = false;
@@ -33,6 +35,11 @@ export class ProfileComponent implements OnInit {
   successMessageEdit : string = undefined;
 
   noOrders : boolean = false;
+
+  showAddProduct : boolean = false;
+
+  errorMessageAddProd : string = undefined;
+  successMessageAddProd : string = undefined;
 
   // user : types.User = {"pk_username": "testuser", "email": "test@user.at", "name": "Test", "surname": "User", "billingaddress": "my fancy address", "deliveryaddress": "my super facy address"};
   constructor(
@@ -49,8 +56,6 @@ export class ProfileComponent implements OnInit {
       this.getProducts();
     }
   }
-
-
 
   getUserByUsername() : void {
     this.webshopService.getUsers(this.webshopService.getUsername()).then((data) => {
@@ -247,6 +252,48 @@ export class ProfileComponent implements OnInit {
       console.error(err);
       this.errorMessageEdit = "";
       this.errorMessageEdit.concat("We are sorry, but an error occurred: ", err);
+
+    });
+  }
+
+
+  addNewProduct() : void {
+    if (!this.newProduct.name) {
+      this.errorMessageAddProd = "The field 'Name' is a required field. Please fix this and try again."
+      return;
+    }
+    if (!this.newProduct.soldper) {
+      this.errorMessageAddProd = "The field 'Sold per' is a required field. Please fix this and try again."
+      return;
+    }
+    if(!this.newProduct.price && (this.newProduct.price < 0)) {
+      this.errorMessageAddProd = "The field 'Price' is a required field. Please fix this and try again."
+      return;
+    }
+    if(!this.newProduct.amountavailable) {
+      this.errorMessageAddProd = "The field 'Available Amount' is a required field. Please fix this and try again."
+      return;
+    }
+    if(!this.newProduct.vatrate) {
+      this.errorMessageAddProd = "The field 'VAT Rate' is a required field. Please fix this and try again."
+      return;
+    }
+
+    this.webshopService.postProduct(this.newProduct).then((data) => {
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data){
+        // seems like it worked
+        this.successMessageAddProd = "Successfully added new product."
+        this.newProduct = {pk_productid : "", name : "", prSoldPer : "", price : null, amountavailable : null, vatrate : null};
+        return;
+      } else {
+        // should not happen...
+        this.errorMessageAddProd = "We are sorry, but an error occured. Please try again later.";
+      }
+    }).catch(err => {
+      console.error(err);
+      this.errorMessageAddProd = "";
+      this.errorMessageAddProd.concat("We are sorry, but an error occurred: ", err);
 
     });
   }

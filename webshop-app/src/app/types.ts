@@ -74,13 +74,13 @@ export interface Username {
 export interface Product {
   pk_productid: number,
   name: string,
-  description: string,
+  description?: string,
   soldper: string,
   price: number,
   amountavailable: number,
   vatrate: number,
-  imagename: string,
-  orderdAmount: number,
+  imagename?: string,
+  orderdAmount?: number,
   successMessage? : string,
   errorMessage? : string
 }
