@@ -30,6 +30,7 @@ export class Orders {
     swagger
     .addGet (this.getOrders)
     .addGet (this.getOrdersByID)
+    .addGet (this.getOrdersByUsername)
     .addPut(this.putOrdersByID)
     .addPost (this.postOrders)
     .addDelete(this.deleteOrders)
@@ -150,6 +151,38 @@ export class Orders {
       }))
     }
   };
+  
+  public getOrdersByUsername = {
+    'spec': {
+      description : "Operations about Orders",
+      path : "/orders/user/{username}",
+      method: "GET",
+      summary : "Get all Orders from that user",
+      notes : "Returns all Orders From User",
+      type : "username",
+      nickname : "getOrdersByUser",
+      produces : ["application/json"],
+      parameters : [
+          swagger.params.path("username", "Username of the User", "string")
+        ],
+      responseMessages : [
+        { "code": 400, "message": 'invalid username' },
+        // { "code": 404, "message": 'id not found' },
+        { "code": 500, "message": 'internal server error'}
+      ]
+    },
+    'action': (req,res) => {
+      if (!req.params.username) {
+        throw swagger.errors.invalid('username');
+      }
+      this.doGetOrdersByUser(req)
+      .then (result => res.send(JSON.stringify(result)))
+      .catch (error => res.status(500).send ({
+         "code": 500,
+         "message": error
+      }))
+    }
+  };
 
   
     public postOrders = {
@@ -231,16 +264,23 @@ export class Orders {
       if (! req.hasOwnProperty ('auth')) {
         return reject ("Not logged in");
       }
-	  let fk_username = req.auth.user;
-	  let sql;
-	 if(fk_username == "admin"){
-		   sql = "select * from orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid ORDER BY orders.pk_orderid ";
+      // req.auth, req.params.username
+      let sql;
+      if (this.users.userIsAdmin (req)) {
+        // OK
+        sql = "select * from orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid ORDER BY orders.pk_orderid ";
 		    console.log ( "sql = " + sql);
-	 }
-	 else{ 
-		  sql = "SELECT * FROM orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid where fk_username ='" +   fk_username + "' ORDER BY orders.pk_orderid";
+        
+      } else {
+        // only provide own data
+        if (req.params.username && req.params.username != req.auth.user) {
+          reject ("Not your data");
+          return;
+        }else{
+        sql = "SELECT * FROM orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid where fk_username ='" +   req.auth.user + "' ORDER BY orders.pk_orderid";
 			console.log ( "sql = " + sql);
-	 }
+        }
+      }
 		 // console.log ( "fk_username = " + fk_username);
 		 
 		  let params: [string | number] = [limit || this.defaultLimit, offset || 0];
@@ -321,6 +361,80 @@ export class Orders {
             reject ("Order not found");
           }
       })
+      .catch (error => {
+        console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+        reject (error.toString());
+      });
+    });
+  }
+  
+  
+  public doGetOrdersByUser (req: Request) : Promise<Types.Order> {
+     return new Promise ((resolve, reject) => {
+      // req.auth, req.params.username
+      if (! req.hasOwnProperty ('auth')) {
+        return reject ("Not logged in");
+      }
+      // req.auth, req.params.username
+      if (this.users.userIsAdmin (req)) {
+        // OK
+        
+      } else {
+        // only provide own data
+        if (req.params.username && req.params.username != req.auth.user) {
+          reject ("Not your data");
+          return;
+        }
+      }
+	  
+	  let itemsArray = [];
+	  let params = [];
+	  let sql = "SELECT * FROM orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid where fk_username ='" +   req.params.username + "' ORDER BY orders.pk_orderid";
+      this.pool
+		  .query (sql)
+		  .then (res => {			
+				 if(res.rows.length >= 1){
+					 console.log(res.rows.length);
+					let lastOrderId = undefined;
+					let jsonArray : Types.Order[] = [];
+			//		let items : Types.Item[] = [];
+					for(let i=0; i < res.rows.length; i++){
+						//	items = [];
+						 if (res.rows[i].pk_orderid != lastOrderId) {
+							jsonArray.push({ 
+									pk_orderid : res.rows[i].pk_orderid, 
+									orderdate :	res.rows[i].orderdate,
+									deliverydate : res.rows[i].deliverydate, 
+									paymentstate : res.rows[i].paymentstate, 
+									paymentmethod :	res.rows[i].paymentmethod, 
+									price :	res.rows[i].price,
+									items : [],
+										});
+							
+							lastOrderId = res.rows[i].pk_orderid;
+						 }
+						 let r = jsonArray.length - 1; // sicher >= 0
+						  console.log("this is r " + r);
+						  
+						  //CHECK
+						for(let h=0; h < jsonArray.length; h++){
+							console.log(JSON.stringify(jsonArray[h], null, 2));
+						}
+							//console.log(jsonArray.items[0] + "!!!!!!!!!!!1");
+							 jsonArray[r].items.push({ 
+								pk_fk_itemid : res.rows[i].pk_fk_itemid,
+								amount : res.rows[i].amount,
+								fk_pk_orderid : res.rows[i].fk_pk_orderid,
+								price : res.rows[i].price,
+								fk_productid : res.rows[i].fk_productid,					 
+							 });
+							
+					}
+					resolve(jsonArray);
+				}
+			 
+			//resolve (res.rows);
+            })
       .catch (error => {
         console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
         reject (error.toString());
