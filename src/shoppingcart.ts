@@ -381,15 +381,16 @@ export class ShoppingCart {
             }
           }
               
-        sql2 += ` WHERE pk_cartid = ${id} AND fk_pk_username = `+
-          req.auth.user+" RETURNING *";
+        sql2 += ` WHERE pk_cartid = ${id} AND fk_pk_username = $1 RETURNING *`;
+        let params = [];
+        params.push(req.auth.user);
         
         // check 
         console.log(sql2);
         
         //insert into db
         this.pool
-        .query (sql2)
+        .query (sql2,params)
         .then (res => {
           if(res.rows.length == 1){
             resolve (res.rows);
