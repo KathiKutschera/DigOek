@@ -14,19 +14,24 @@ import * as types from '../types';
 export class ProfileComponent implements OnInit {
 
   user : types.User;
+  isAdmin : boolean = false;
   orders : types.Order[] = [];
+  users : types.User[] = [];
 
   showPrevOrders : boolean = false;
   showProfileDetails : boolean = true;
+  showUserManagement : boolean  = false;
 
   newPassword : string = undefined;
   newPasswordRepeat : string = undefined;
 
-  errorMessage : string;
-  successMessage : string;
+  errorMessage : string = undefined;
+  successMessage : string = undefined;
+
+  errorMessageEdit : string = undefined;
+  successMessageEdit : string = undefined;
 
   noOrders : boolean = false;
-
 
   // user : types.User = {"pk_username": "testuser", "email": "test@user.at", "name": "Test", "surname": "User", "billingaddress": "my fancy address", "deliveryaddress": "my super facy address"};
   constructor(
@@ -35,12 +40,17 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.getUsers();
+    this.getUserByUsername();
     this.getOrders();
+    this.isAdmin = this.webshopService.getUserIsAdmin();
+    if(this.isAdmin){
+      this.getUsers();
+    }
   }
 
 
-  getUsers() : void {
+
+  getUserByUsername() : void {
     this.webshopService.getUsers(this.webshopService.getUsername()).then((data) => {
       let users : types.User[] = data;
       console.log("data: " + JSON.stringify(data, null, 2));
@@ -51,6 +61,17 @@ export class ProfileComponent implements OnInit {
         // should not happen...
         // TODO: error handling
       }
+    }).catch(err => {
+      console.error(err);
+      this.router.navigate(['/home']);
+    });
+  }
+
+  getUsers() : void {
+    this.webshopService.getUsers().then((data) => {
+      let users : types.User[] = data;
+      console.log("data: " + JSON.stringify(data, null, 2));
+      this.users = data;
     }).catch(err => {
       console.error(err);
       this.router.navigate(['/home']);
@@ -108,17 +129,52 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  deleteUser(): void {
-    this.webshopService.deleteUser().then((data) => {
+  deleteUser(u? : types.User): void {
+    this.webshopService.deleteUser(u)
+    .then((data) => {
       console.log("data: " + JSON.stringify(data, null, 2));
       if(data){
         // seems like it worked
-        this.successMessage = "Successfully deleted your profile."
+        if(u){
+          u.successMessageEdit = `Successfully deleted ${u? u.pk_username.concat('s') : 'your'} profile.`;
+        } else{
+          this.successMessage = `Successfully deleted ${u? u.pk_username.concat('s') : 'your'} profile.`;
 
+        }
       }
     }).catch(err => {
       console.error(err);
-      this.errorMessage = "You may have open bills. Users with open bills cannot be deleted.";
+      if (u) {
+        u.errorMessageEdit = `${u.pk_username} may have open bills. Users with open bills cannot be deleted.`;
+      } else {
+        this.errorMessage = "You may have open bills. Users with open bills cannot be deleted.";
+      }
+    });
+  }
+
+  saveChangesAdmin(u : types.User) : void {
+    console.log("USER TO CHANGE: " + JSON.stringify(u));
+
+    u.pwhash = undefined;
+
+    this.webshopService.putUser(u).then((data) => {
+
+      // need to get and set his password.... otherwise the new password is the hashed pwhash
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data){
+        // seems like it worked
+        this.successMessageEdit = "Successfully updated your profile."
+        // this.user = undefined;
+        return;
+      } else {
+        // should not happen...
+        this.errorMessageEdit = "We are sorry, but an error occured. Please try again later.";
+      }
+    }).catch(err => {
+      console.error(err);
+      this.errorMessageEdit = "";
+      this.errorMessageEdit.concat("We are sorry, but an error occurred: ", err);
+
     });
   }
 
@@ -138,6 +194,10 @@ export class ProfileComponent implements OnInit {
     }).catch(err => {
       console.error(err);
     });
+  }
+
+  formatDate(date: string) : string{
+    return moment(date).format('MMMM Do YYYY, h:mm:ss a');
   }
 
 

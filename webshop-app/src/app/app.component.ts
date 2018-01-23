@@ -14,13 +14,18 @@ export class AppComponent implements OnInit {
   title = 'app';
 
   showLogin: boolean = false;
+
   username : string = undefined;
+
   loginUsername : string;
   loginPassword: string;
+
   info: string = undefined;
+
   newUser : types.User = {pk_username: "", email: ""};
   newUserPW1 : string = undefined;
   newUserPW2 : string = undefined;
+
   errorMessageAdd : string = undefined;
   successMessageAdd : string = undefined;
 
@@ -37,13 +42,7 @@ export class AppComponent implements OnInit {
 
   // on init : get products....
   ngOnInit() {
-    this.webshopService.getProductGroups().then((data) => {
-      this.productgroups = data;
-      console.log("data: " + JSON.stringify(data, null, 2));
-      // do something else?
-    }).catch(err => {
-      console.error(err);
-    });
+    this.getProductGroups();
   }
 
   login() {
@@ -56,6 +55,7 @@ export class AppComponent implements OnInit {
         this.username = data;
       } else {
         this.username = data;
+        this.router.navigate(['/home']);
       }
     }).catch(err => {
       console.error(err);
@@ -69,6 +69,7 @@ export class AppComponent implements OnInit {
   logout() {
     this.username = undefined;
     this.webshopService.configureUser(this.username, undefined);
+    this.router.navigate(['/home']);
   }
 
   register() : void{
@@ -133,6 +134,16 @@ export class AppComponent implements OnInit {
     }).catch(err => {
       console.error(err);
       this.errorMessageAdd = "Username may be taken. Please try another one";
+    });
+  }
+
+  getProductGroups(): void {
+    this.webshopService.getProductGroups().then((data) => {
+      this.productgroups = data;
+      console.log("data: " + JSON.stringify(data, null, 2));
+      // do something else?
+    }).catch(err => {
+      console.error(err);
     });
   }
 

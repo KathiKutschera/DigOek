@@ -64,8 +64,12 @@ export class ShoppingCart {
         { "code": 500, "message": 'internal server error'}]
     },
     'action': (req,res) => {
-       if (!req.params.username) {
-        throw swagger.errors.invalid('username');
+       if (!req.params.id) {
+        throw swagger.errors.invalid('id');
+      }
+      let id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw swagger.errors.invalid('id');
       }
      
       this.doGetCartItems (req)
@@ -112,7 +116,7 @@ export class ShoppingCart {
    public getShoppingCart = {
     'spec': {
       description : "Operations about Shopping Cart Items",
-      path : "/cart/",
+      path : "/cart",
       method: "GET",
       summary : "Get one shopping cart collection for one user",
       notes : "Returns a shopping cart collection for one user",
@@ -130,13 +134,6 @@ export class ShoppingCart {
       ]
     },
     'action': (req,res) => {
-      if (!req.params.id) {
-        throw swagger.errors.invalid('id');
-      }
-      let id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        throw swagger.errors.invalid('id');
-      }
       this.doGetCart (req, req.auth, req.query.limit, 
           req.query.offset)
       .then (result => res.send(JSON.stringify(result)))
@@ -190,7 +187,8 @@ export class ShoppingCart {
       nickname : "putCartItemByID",
       produces : ["application/json"],
       parameters : [
-          swagger.params.path("id", "ID of the cart item", "long")
+          swagger.params.path("id", "ID of the cart item", "long"),
+          swagger.params.body("body", "Data of the cart item", "string")
         ],
       responseMessages : [
         { "code": 400, "message": 'invalid id' },
@@ -225,10 +223,9 @@ export class ShoppingCart {
       if (! req.hasOwnProperty ('auth')) {
         return reject ("Not logged in");
       }
-      let sql = "SELECT * FROM shoppingcartitems where fk_pk_username = $1"
-        + " AND pk_cartid = $2";
+      let sql = "SELECT * FROM shoppingcartitems where fk_pk_username = $1 AND pk_cartid = $2";
 	  console.log("this is the query" + sql);
-      let params: [string | number] = [req.auth.username, 
+      let params: [string | number] = [req.auth.user, 
         req.params.id];
       this.pool
       .query (sql, params)
@@ -251,10 +248,10 @@ export class ShoppingCart {
       if (! req.hasOwnProperty ('auth')) {
         return reject ("Not logged in");
       }
-      let sql = "SELECT * FROM shoppingcartitems WHERE "
-       + "fk_pk_username=" + auth.user;
+      let sql = "SELECT * FROM shoppingcartitems WHERE fk_pk_username = $3";
       let params: [string | number] = [limit || this.defaultLimit, offset || 0];
-      sql += "  LIMIT $1 OFFSET $2";
+      sql += " LIMIT $1 OFFSET $2";
+      params.push(req.auth.user);
       this.pool
       .query (sql, params)
       .then (res => {
@@ -274,8 +271,8 @@ export class ShoppingCart {
         return reject ("Not logged in");
       }
       
-      let requiredFields = ["pk_cartid", "amount", 
-      "price", "fk_pk_username", "fk_pk_productid"];
+      let requiredFields = ["amount", 
+      "price", "fk_pk_productid"];
 
       for(let i = 0; i < requiredFields.length; i++){
         if(! req.body.hasOwnProperty(requiredFields[i])){
@@ -285,11 +282,12 @@ export class ShoppingCart {
       }
 
 	  // create query for insert into orders table
-      let sql2 = "INSERT INTO shoppingcartitems(";
+      let sql2 = "INSERT INTO shoppingcartitems(fk_pk_username";
       let params2 = [];
+      params2.push(req.auth.user)
 
       let allFieldsSql2 = ["pk_cartid", "amount", 
-        "price", "fk_pk_username", "fk_pk_productid"];
+        "price", "fk_pk_productid"];
       let i = 0;
 
       for(; i < allFieldsSql2.length; i++){
@@ -305,7 +303,7 @@ export class ShoppingCart {
 	 // let orderdate = req.body.orderdate; 
 
       sql2 += `) VALUES (`;
-      for(let j = 0; j < i; j++){
+      for(let j = 0; j < params2.length; j++){
         if(j != 0){
           sql2 += `, `;
         }
@@ -313,7 +311,7 @@ export class ShoppingCart {
 
       }
 	  	  
-	  sql2 += `) `;
+	  sql2 += `) RETURNING *`;
 	  
 	  // check 
 	    console.log(sql2);
@@ -322,13 +320,15 @@ export class ShoppingCart {
 	  //insert into db
 	  this.pool
 		.query (sql2, params2)
+        .then (res => {
+        resolve (res.rows);
+      })
         .catch ( error => {
           console.error(sql2 + " with params "+JSON.stringify (params2) + ": " + error.toString());
           reject (error.toString());
         });
 	  
-	  // create query for insert into orderitems table
-      });
+	  });
 
     }
 
@@ -340,9 +340,9 @@ export class ShoppingCart {
           return reject ("Not logged in");
         }
   
-        let sql = "DELETE FROM shoppingcartitems where " + 
-        "pk_cartid = $1 RETURNING *";
-        let params: [number] = [req.params.id];
+        let sql = "DELETE FROM shoppingcartitems where pk_cartid = $1 AND fk_pk_username=$2 RETURNING *";
+        let params: [number | string] = [req.params.id, 
+          req.auth.user];
         this.pool
         .query (sql, params)
         .then (res => {
@@ -366,14 +366,10 @@ export class ShoppingCart {
             return reject ("Not logged in");
           }
 
-          let requiredFields = ["pk_cartid", "amount", 
-          "price", "fk_pk_username", "fk_pk_productid"];
+          let sql2 = "UPDATE shoppingcartitems SET ";
 
-        // create query for insert into orders table
-          let sql2 = "UPDATE INTO shoppingcartitems SET ";
-
-          let allFieldsSql2 = ["pk_cartid", "amount", 
-            "price", "fk_pk_username", "fk_pk_productid"];
+          let allFieldsSql2 = ["amount", 
+            "price", "fk_pk_productid"];
           let i = 0;
 
           for(; i < allFieldsSql2.length; i++){
@@ -381,22 +377,27 @@ export class ShoppingCart {
               if(i != 0){
                 sql2 += `, `;
               }
-              sql2 += `${allFieldsSql2[i]}` + " = '"
-              + `${req.body[allFieldsSql2[i]]}` + "'";
+              sql2 += ` ${allFieldsSql2[i]} = ${req.body[allFieldsSql2[i]]}` ;
             }
           }
-        
-      // let orderdate = req.body.orderdate; 
-            
-        sql2 += " WHERE pk_cartid = " + 
-         `${id}`;
+              
+        sql2 += ` WHERE pk_cartid = ${id} AND fk_pk_username = $1 RETURNING *`;
+        let params = [];
+        params.push(req.auth.user);
         
         // check 
         console.log(sql2);
         
         //insert into db
         this.pool
-        .query (sql2)
+        .query (sql2,params)
+        .then (res => {
+          if(res.rows.length == 1){
+            resolve (res.rows);
+          } else {
+              reject ("No such shoppingcartitem or not your data");
+            }
+        })
             .catch ( error => {
               console.error(sql2 + ": " + error.toString());
               reject (error.toString());

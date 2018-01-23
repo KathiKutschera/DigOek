@@ -337,7 +337,7 @@ class Orders {
                 let currentItem;
                 let sql1 = "INSERT INTO orderitems(";
                 let params1 = [];
-                let allFieldsSql1 = ["pk_fk_itemid", "price", "amount", "fk_productid"];
+                let allFieldsSql1 = ["price", "amount", "fk_productid"];
                 let h = 0;
                 let n = 0;
                 let byed = [];
@@ -357,7 +357,8 @@ class Orders {
                         //add orderID as foreignkey
                         //got the id after the insert of the order. Don't change it!
                         params1.push(pk_orderid);
-                        sql1 += `fk_pk_orderid, `;
+                        sql1 += `fk_pk_orderid, pk_fk_itemid,`;
+                        params1.push(p + 1);
                         n++;
                         for (; h < allFieldsSql1.length; h++) {
                             if (currentItem.hasOwnProperty(allFieldsSql1[h])) {
@@ -429,11 +430,11 @@ class Orders {
                 else {
                     console.log("no ITEMS!! ");
                 }
+            })
+                .catch(error => {
+                console.error(sql2 + " with params " + JSON.stringify(params2) + ": " + error.toString());
+                reject(error.toString());
             });
-        })
-            .catch(error => {
-            console.error(sql2 + " with params " + JSON.stringify(params2) + ": " + error.toString());
-            reject(error.toString());
         });
     }
     doDeleteOrders(req) {
@@ -443,12 +444,45 @@ class Orders {
             }
             // query status of order: order can only be deleted if delivery date is null
             //TODO let sql = "DELETE FROM orders where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
+            //oben beschriebene Lösung ignoriert 
+            //bereits vom availableAmount abgezogene Güter, daher: 
             let sql = "DELETE FROM orders where pk_orderid = $1 AND deliverydate IS NULL RETURNING *";
             let params = [req.params.id];
             this.pool
                 .query(sql, params)
                 .then(res => {
-                if (res.rows.length == 1) {
+                if (res.rows.length >= 1) {
+                    //Dieser Wert wurde gelöscht --> 
+                    //Suchen aller dazugehörigen OrderItems, 
+                    //hinzufügen d. Produktanzahl
+                    //und löschen d. Items
+                    let sql2 = "SELECT fk_productid, amount FROM "
+                        + "orderitems where fk_pk_orderid = $1";
+                    this.pool.query(sql2, params)
+                        .then(res => {
+                        let i = 0;
+                        for (; i < res.rows.length; i++) {
+                            let amount = res.rows[i].amount;
+                            let product = res.rows[i].fk_productid;
+                            let sql3 = "UPDATE products SET amountavailable "
+                                + "= " + amount + " WHERE pk_productid = " + product;
+                            this.pool.query(sql3, params)
+                                .catch(error => {
+                                console.error(sql3 + ": " + error.toString());
+                                reject(error.toString());
+                            });
+                        }
+                        let sql4 = "DELETE FROM orderitems where fk_pk_orderid = $1";
+                        this.pool.query(sql4, params)
+                            .catch(error => {
+                            console.error(sql4 + ": " + error.toString());
+                            reject(error.toString());
+                        });
+                    })
+                        .catch(error => {
+                        console.error(sql2 + " with params " + JSON.stringify(params) + ": " + error.toString());
+                        reject(error.toString());
+                    });
                     resolve(res.rows);
                 }
                 else {

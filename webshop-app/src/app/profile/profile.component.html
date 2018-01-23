@@ -7,11 +7,18 @@
   <!-- show which tab is active is not working -->
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a class="nav-link active" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showProfileDetails = true">Profile Details</a>
+      <a class="nav-link active" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showUserManagement = false; showProductManagement = false; showProfileDetails = true">Profile Details</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-toggle="tab" role="tab" (click)="showProfileDetails = false; showPrevOrders = true;">Previous Orders</a>
+      <a class="nav-link" data-toggle="tab" role="tab" (click)="showProfileDetails = false; showUserManagement = false; showProductManagement = false; showPrevOrders = true;">Previous Orders</a>
     </li>
+    <li class="nav-item" *ngIf="isAdmin">
+      <a class="nav-link" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showProfileDetails = false; showProductManagement = false; showUserManagement = true;">User Management</a>
+    </li>
+    <li class="nav-item" *ngIf="isAdmin">
+      <a class="nav-link" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showProfileDetails = false; showUserManagement = false; showProductManagement = true">Product Management</a>
+    </li>
+
     <!-- <li class="nav-item">
       <a class="nav-link" href="#">Link</a>
     </li>
@@ -99,13 +106,41 @@
 
 <!-- <div class="container-fluid"> -->
   <div *ngIf="showPrevOrders">
+    <h4> Your orders: </h4>
+    <p>&nbsp;</p>
     <div class="list-group">
       <div *ngFor="let order of orders; index as i">
-        <button type="button" name={{order.pk_orderid}} class="list-group-item list-group-item-action" (click)="order.showDetails = true">
-          {{order.orderdate}}
+        <button type="button" name={{order.pk_orderid}} class="list-group-item list-group-item-action" (click)="order.showDetails = !order.showDetails">
+          {{formatDate(order.orderdate)}}
         </button>
         <div *ngIf="order.showDetails">
-          {{order.pk_orderid}}
+          <br/>
+          <p>
+            <b>OrderID: </b>
+            {{order.pk_orderid}}
+          </p>
+          <p *ngIf="order.deliverydate">
+            <b>Delivery date: </b>
+            {{order.deliverydate}}
+          </p>
+          <p>
+            <b>Payment Status: </b>
+            {{order.paymentstate}}
+          </p>
+          <p>
+            <b>Paymentmethod: </b>
+            {{order.paymentmethod}}
+          </p>
+          <p>
+            <b>Overall Price: </b>
+            {{order.price}}
+          </p>
+
+        	<div *ngFor="let item of order.items">
+            <!-- TODO: oderitems when get order is fixed.. -->
+
+          </div>
+
         </div>
       </div>
     </div>
@@ -115,5 +150,55 @@
     "We didn't find any previous orders of you."
   </h5>
 
+
+
+  <div *ngIf="showUserManagement">
+    <p>&nbsp;</p>
+    <h4> All Users: </h4>
+    <p>&nbsp;</p>
+    <div class="list-group">
+      <div *ngFor="let u of users; index as i">
+        <button type="button" name={{u.pk_username}} class="list-group-item list-group-item-action" (click)="u.showDetails = !u.showDetails">
+          {{u.pk_username}}
+        </button>
+        <br/>
+        <div *ngIf="u.showDetails">
+          <p><b>Name: </b> {{u.name}}</p>
+          <p><b>Surname: </b> {{u.surname}}</p>
+          <p>
+             <input type="checkbox" name="admin_{{i}}" [(ngModel)]="u.isadmin"> Admin Rights
+          </p>
+          <br *ngIf="u.errorMessageEdit"/>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="u.errorMessageEdit">{{u.errorMessageEdit}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="u.errorMessageEdit = ''">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <br *ngIf="u.successMessageEdit"/>
+          <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="u.successMessageEdit">{{u.successMessageEdit}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="u.successMessageEdit = ''">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-success" (click)="saveChangesAdmin(u)">Save Changes
+            <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteUser(u)">Delete Profile
+            <span><i class="fa fa-user-times" aria-hidden="true"></i></span>
+          </button>
+          <p>&nbsp;</p>
+          <br/>
+        </div>
+      </div>
+
+
+        <!-- <div *ngIf="u.showDetails">
+        </div> -->
+      </div>
+  </div>
+
+  <div *ngIf="showProductManagement">
+    <p> product management </p>
+  </div>
 
 </div>

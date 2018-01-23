@@ -9,7 +9,7 @@ export interface Count {
 export interface User {
   pk_username: string,
   pwhash?: string,
-  email: string,
+  email?: string,
   isadmin?: boolean
   name?: string,
   surname?: string,
@@ -21,11 +21,15 @@ export interface User {
   creditcardnr?: string,
   validyear?: number,
   validmonth?: number,
-  ccv?: number
+  ccv?: number,
+  showDetails?: boolean,
+  successMessageEdit? : string,
+  errorMessageEdit? : string
 }
 
 
 export interface Cart {
+
   items: CartItems[]
 }
 
