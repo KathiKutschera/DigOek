@@ -17,6 +17,7 @@ export class ProfileComponent implements OnInit {
   isAdmin : boolean = false;
   orders : types.Order[] = [];
   users : types.User[] = [];
+  products : types.Product[] = [];
 
   showPrevOrders : boolean = false;
   showProfileDetails : boolean = true;
@@ -45,6 +46,7 @@ export class ProfileComponent implements OnInit {
     this.isAdmin = this.webshopService.getUserIsAdmin();
     if(this.isAdmin){
       this.getUsers();
+      this.getProducts();
     }
   }
 
@@ -72,6 +74,16 @@ export class ProfileComponent implements OnInit {
       let users : types.User[] = data;
       console.log("data: " + JSON.stringify(data, null, 2));
       this.users = data;
+    }).catch(err => {
+      console.error(err);
+      this.router.navigate(['/home']);
+    });
+  }
+
+  getProducts() : void {
+    this.webshopService.getProducts().then((data) => {
+      console.log("data: " + JSON.stringify(data, null, 2));
+      this.products = data;
     }).catch(err => {
       console.error(err);
       this.router.navigate(['/home']);
@@ -196,8 +208,13 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  formatDate(date: string) : string{
+  formatDate(date: string) : string {
     return moment(date).format('MMMM Do YYYY, h:mm:ss a');
+  }
+
+
+  updateProduct(p : types.Product) : void {
+    
   }
 
 
