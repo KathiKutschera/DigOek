@@ -106,6 +106,8 @@
 
 <!-- <div class="container-fluid"> -->
   <div *ngIf="showPrevOrders">
+    <h4> Your orders: </h4>
+    <p>&nbsp;</p>
     <div class="list-group">
       <div *ngFor="let order of orders; index as i">
         <button type="button" name={{order.pk_orderid}} class="list-group-item list-group-item-action" (click)="order.showDetails = true">
@@ -148,5 +150,98 @@
     "We didn't find any previous orders of you."
   </h5>
 
+
+
+  <div *ngIf="showUserManagement">
+    <button type="button" class="btn btn-success" (click)="addUser()">Add User
+      <span><i class="fa fa-user-plus" aria-hidden="true"></i></span>
+    </button>
+    <p>&nbsp;</p>
+    <h4> All Users: </h4>
+    <p>&nbsp;</p>
+    <div class="list-group">
+      <div *ngFor="let u of users; index as i">
+        <button type="button" name={{u.pk_username}} class="list-group-item list-group-item-action" (click)="u.showDetails = true">
+          {{u.pk_username}}
+        </button>
+        <br/>
+        <!-- TODO: USER FORM AND EDIT BUTTON -->
+        <form *ngIf="u.showDetails">
+          <div class="form-group">
+            <label><b>Name</b></label>
+            <input type="text" class="form-control" name="eName" [(ngModel)]="u.name">
+          </div>
+          <div class="form-group">
+            <label><b>Surname</b></label>
+            <input type="text" class="form-control" name="eSurname" [(ngModel)]="u.surname">
+          </div>
+          <div class="form-group">
+            <label><b>Email address</b></label>
+            <input type="email" class="form-control" name="eEmail" [(ngModel)]="u.email">
+          </div>
+          <div class="form-group">
+            <label><b>Company-Name</b></label>
+            <input type="text" class="form-control" name="eCompanyName" [(ngModel)]="u.companyname">
+          </div>
+          <div class="form-group">
+            <label><b>Billing Address</b></label>
+            <input type="text" class="form-control" name="eBillingAddress" [(ngModel)]="u.billingaddress">
+          </div>
+          <div class="form-group">
+            <label><b>Delivery Address</b></label>
+            <input type="text" class="form-control" name="eDeliveryAddress" [(ngModel)]="u.deliveryaddress">
+          </div>
+          <div class="form-group">
+            <label><b>VAT</b></label>
+            <input type="text" class="form-control" name="eVat" [(ngModel)]="u.vat">
+          </div>
+          <div class="form-group">
+            <label><b>Creditcard Number</b></label>
+            <input type="text" class="form-control" name="eCCNr" [(ngModel)]="u.creditcardnr">
+          </div>
+          <div class="form-group">
+            <label><b>Creditcard Validyead</b></label>
+            <input type="number" class="form-control" name="eValidYear" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="u.validyear">
+          </div>
+          <div class="form-group">
+            <label><b>Creditcard Validmonth</b></label>
+            <input type="number" class="form-control" min="0" max="12" ngMin="0" ngMax="12" name="eValidMonth" [(ngModel)]="u.validmonth">
+          </div>
+          <div class="form-group">
+            <label><b>Creditcard CCV</b></label>
+            <input type="text" class="form-control" name="eNameOnCC" [(ngModel)]="u.ccv">
+          </div>
+          <br *ngIf="errorMessageEdit"/>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessageEdit">{{errorMessageEdit}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="errorMessageEdit = ''">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <br *ngIf="successMessageEdit"/>
+          <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="successMessageEdit">{{successMessageEdit}}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="successMessageEdit = ''">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <!-- TODO -->
+          <button type="button" class="btn btn-lg btn-block btn-outline-success" (click)="saveChanges()">Save Changes
+            <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
+          </button>
+          <button type="button" class="btn btn-lg btn-block btn-outline-danger" (click)="deleteUser()">Delete Profile
+            <span><i class="fa fa-user-times" aria-hidden="true"></i></span>
+          </button>
+          <br/>
+        </form>
+      </div>
+
+
+        <!-- <div *ngIf="u.showDetails">
+        </div> -->
+      </div>
+  </div>
+
+  <div *ngIf="showProductManagement">
+    <p> product management </p>
+  </div>
 
 </div>

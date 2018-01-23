@@ -21,7 +21,8 @@ export interface User {
   creditcardnr?: string,
   validyear?: number,
   validmonth?: number,
-  ccv?: number
+  ccv?: number,
+  showDetails?: boolean
 }
 
 

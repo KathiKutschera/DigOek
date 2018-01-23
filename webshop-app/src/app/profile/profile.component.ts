@@ -16,6 +16,7 @@ export class ProfileComponent implements OnInit {
   user : types.User;
   isAdmin : boolean = false;
   orders : types.Order[] = [];
+  users : types.User[] = [];
 
   showPrevOrders : boolean = false;
   showProfileDetails : boolean = true;
@@ -24,8 +25,11 @@ export class ProfileComponent implements OnInit {
   newPassword : string = undefined;
   newPasswordRepeat : string = undefined;
 
-  errorMessage : string;
-  successMessage : string;
+  errorMessage : string = undefined;
+  successMessage : string = undefined;
+
+  errorMessageEdit : string = undefined;
+  successMessageEdit : string = undefined;
 
   noOrders : boolean = false;
 
@@ -37,13 +41,17 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.getUsers();
+    this.getUserByUsername();
     this.getOrders();
     this.isAdmin = this.webshopService.getUserIsAdmin();
+    if(this.isAdmin){
+      this.getUsers();
+    }
   }
 
 
-  getUsers() : void {
+
+  getUserByUsername() : void {
     this.webshopService.getUsers(this.webshopService.getUsername()).then((data) => {
       let users : types.User[] = data;
       console.log("data: " + JSON.stringify(data, null, 2));
@@ -54,6 +62,17 @@ export class ProfileComponent implements OnInit {
         // should not happen...
         // TODO: error handling
       }
+    }).catch(err => {
+      console.error(err);
+      this.router.navigate(['/home']);
+    });
+  }
+
+  getUsers() : void {
+    this.webshopService.getUsers().then((data) => {
+      let users : types.User[] = data;
+      console.log("data: " + JSON.stringify(data, null, 2));
+      this.users = data;
     }).catch(err => {
       console.error(err);
       this.router.navigate(['/home']);
