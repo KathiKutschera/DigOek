@@ -11,7 +11,7 @@ import { Router } from "@angular/router";
 })
 export class ShoppingcartComponent implements OnInit {
 
-  cart : types.Cart;
+  cart : types.CartItems[];
 
   constructor(private webshopService: WebshopService, 
     private router: Router) { }
@@ -25,7 +25,7 @@ export class ShoppingcartComponent implements OnInit {
     this.webshopService.
       getCart().then((data) => {
         console.log("data: " + JSON.stringify(data, null, 2));
-        
+        this.cart = data;
         
       }).catch(err => {
         console.error(err);

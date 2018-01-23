@@ -34,11 +34,11 @@ export interface Cart {
 }
 
 export interface CartItems {
-  pk_cartID : number,
+  pk_cartid : number,
   amount : number,
   price : number,
-  fk_pk_userName? : string,
-  fk_pk_productID? : number
+  fk_pk_username? : string,
+  fk_pk_productid? : number
 }
 
 export interface Order {

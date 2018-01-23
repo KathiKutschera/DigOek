@@ -203,20 +203,56 @@ class Orders {
             let fk_username = req.auth.user;
             let sql;
             if (fk_username == "admin") {
-                sql = "SELECT * FROM orders";
+                sql = "select * from orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid ORDER BY orders.pk_orderid ";
                 console.log("sql = " + sql);
             }
             else {
-                sql = "SELECT * FROM orders WHERE fk_username = '" + fk_username + "'";
+                sql = "SELECT * FROM orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid where fk_username ='" + fk_username + "' ORDER BY orders.pk_orderid";
                 console.log("sql = " + sql);
             }
-            console.log("fk_username = " + fk_username);
+            // console.log ( "fk_username = " + fk_username);
             let params = [limit || this.defaultLimit, offset || 0];
             sql += "  LIMIT $1 OFFSET $2";
             this.pool
                 .query(sql, params)
                 .then(res => {
-                resolve(res.rows);
+                if (res.rows.length >= 1) {
+                    console.log("im woring on it");
+                    let lastOrderId = undefined;
+                    let jsonArray = [];
+                    //		let items : Types.Item[] = [];
+                    for (let i = 0; i < res.rows.length; i++) {
+                        //	items = [];
+                        if (res.rows[i].pk_orderid != lastOrderId) {
+                            jsonArray.push({
+                                pk_orderid: res.rows[i].pk_orderid,
+                                orderdate: res.rows[i].orderdate,
+                                deliverydate: res.rows[i].deliverydate,
+                                paymentstate: res.rows[i].paymentstate,
+                                paymentmethod: res.rows[i].paymentmethod,
+                                price: res.rows[i].price,
+                                items: [],
+                            });
+                            lastOrderId = res.rows[i].pk_orderid;
+                        }
+                        let r = jsonArray.length - 1; // sicher >= 0
+                        console.log("this is r " + r);
+                        //CHECK
+                        for (let h = 0; h < jsonArray.length; h++) {
+                            console.log(JSON.stringify(jsonArray[h], null, 2));
+                        }
+                        //console.log(jsonArray.items[0] + "!!!!!!!!!!!1");
+                        jsonArray[r].items.push({
+                            pk_fk_itemid: res.rows[i].pk_fk_itemid,
+                            amount: res.rows[i].amount,
+                            fk_pk_orderid: res.rows[i].fk_pk_orderid,
+                            price: res.rows[i].price,
+                            fk_productid: res.rows[i].fk_productid,
+                        });
+                    }
+                    resolve(jsonArray);
+                }
+                //resolve (res.rows);
             })
                 .catch(error => {
                 console.error(sql + " with params " + JSON.stringify(params) + ": " + error.toString());
@@ -230,12 +266,14 @@ class Orders {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            let sql = "SELECT * FROM orders where pk_orderid = $1";
+            let itemsArray = [];
+            //select * from orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid where orders.pk_orderid = 1;
+            let sql = "SELECT * FROM orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid where pk_orderid = $1";
             let params = [id];
             this.pool
                 .query(sql, params)
                 .then(res => {
-                if (res.rows.length == 1) {
+                if (res.rows.length >= 1) {
                     resolve(res.rows);
                 }
                 else {
@@ -413,7 +451,7 @@ class Orders {
             this.pool
                 .query(sql, params)
                 .then(res => {
-                if (res.rows.length >= 1) {
+                if (res.rows.length == 1) {
                     //Dieser Wert wurde gelöscht --> 
                     //Suchen aller dazugehörigen OrderItems, 
                     //hinzufügen d. Produktanzahl
