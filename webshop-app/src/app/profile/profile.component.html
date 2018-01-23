@@ -166,52 +166,20 @@
         </button>
         <br/>
         <!-- TODO: USER FORM AND EDIT BUTTON -->
-        <form *ngIf="u.showDetails">
+        <div *ngIf="u.showDetails">
+          <p><b>Name: </b> {{u.name}}</p>
+          <p><b>Surname: </b> {{u.surname}}</p>
 
-          <div class="form-group">
-            <label><b>Name</b></label>
-            <input type="text" class="form-control" name="eName" [(ngModel)]="u.name">
-          </div>
-          <div class="form-group">
-            <label><b>Surname</b></label>
-            <input type="text" class="form-control" name="eSurname" [(ngModel)]="u.surname">
-          </div>
-          <div class="form-group">
-            <label><b>Email address</b></label>
-            <input type="email" class="form-control" name="eEmail" [(ngModel)]="u.email">
-          </div>
-          <div class="form-group">
-            <label><b>Company-Name</b></label>
-            <input type="text" class="form-control" name="eCompanyName" [(ngModel)]="u.companyname">
-          </div>
-          <div class="form-group">
-            <label><b>Billing Address</b></label>
-            <input type="text" class="form-control" name="eBillingAddress" [(ngModel)]="u.billingaddress">
-          </div>
-          <div class="form-group">
-            <label><b>Delivery Address</b></label>
-            <input type="text" class="form-control" name="eDeliveryAddress" [(ngModel)]="u.deliveryaddress">
-          </div>
-          <div class="form-group">
-            <label><b>VAT</b></label>
-            <input type="text" class="form-control" name="eVat" [(ngModel)]="u.vat">
-          </div>
-          <div class="form-group">
-            <label><b>Creditcard Number</b></label>
-            <input type="text" class="form-control" name="eCCNr" [(ngModel)]="u.creditcardnr">
-          </div>
-          <div class="form-group">
-            <label><b>Creditcard Validyead</b></label>
-            <input type="number" class="form-control" name="eValidYear" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="u.validyear">
-          </div>
-          <div class="form-group">
-            <label><b>Creditcard Validmonth</b></label>
-            <input type="number" class="form-control" min="0" max="12" ngMin="0" ngMax="12" name="eValidMonth" [(ngModel)]="u.validmonth">
-          </div>
-          <div class="form-group">
-            <label><b>Creditcard CCV</b></label>
-            <input type="text" class="form-control" name="eNameOnCC" [(ngModel)]="u.ccv">
-          </div>
+          <!-- <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="adminCheck" [(ngModel)]="u.isAdmin">
+            <label class="form-check-label" for="adminCheck">User has admin rights</label>
+          </div> -->
+          <p>
+            <!-- {{u.isadmin}} -->
+             <input type="checkbox" name="admin_{{i}}" [(ngModel)]="u.isadmin"> Admin Rights
+             <!-- <input type="radio" value="female" name="gender" [ngModel]="user.gender" > Female -->
+          </p>
+
           <br *ngIf="errorMessageEdit"/>
           <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessageEdit">{{errorMessageEdit}}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="errorMessageEdit = ''">
@@ -225,14 +193,15 @@
             </button>
           </div>
           <!-- TODO -->
-          <button type="button" class="btn btn-lg btn-block btn-outline-success" (click)="saveChanges()">Save Changes
+          <button type="button" class="btn btn-sm btn-outline-success" (click)="saveChangesAdmin(u)">Save Changes
             <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
           </button>
-          <button type="button" class="btn btn-lg btn-block btn-outline-danger" (click)="deleteUser()">Delete Profile
+          <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteUserAdmin(u)">Delete Profile
             <span><i class="fa fa-user-times" aria-hidden="true"></i></span>
           </button>
+          <p>&nbsp;</p>
           <br/>
-        </form>
+        </div>
       </div>
 
 

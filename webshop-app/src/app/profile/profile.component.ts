@@ -143,6 +143,32 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  saveChangesAdmin(u : types.User) : void {
+    console.log("USER TO CHANGE: " + JSON.stringify(u));
+
+    this.webshopService.putUser(u).then((data) => {
+
+      // need to get and set his password....
+      u.pwhash = undefined;
+
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data){
+        // seems like it worked
+        this.successMessageEdit = "Successfully updated your profile."
+        // this.user = undefined;
+        return;
+      } else {
+        // should not happen...
+        this.errorMessageEdit = "We are sorry, but an error occured. Please try again later.";
+      }
+    }).catch(err => {
+      console.error(err);
+      this.errorMessageEdit = "";
+      this.errorMessageEdit.concat("We are sorry, but an error occurred: ", err);
+
+    });
+  }
+
 
   getOrders(): void {
     this.webshopService.getOrders().then((data) => {

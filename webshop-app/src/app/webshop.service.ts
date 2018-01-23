@@ -84,7 +84,7 @@ export class WebshopService {
     // let body = user;
     // // let params = new HttpParams();
     // // params = params.append('body', JSON.stringify(user));
-    return this.http.put(`${this.url}/rest/users/${this.username}`, user,{
+    return this.http.put(`${this.url}/rest/users/${user.pk_username}`, user,{
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
     .toPromise()
