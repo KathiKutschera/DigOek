@@ -33,7 +33,6 @@ export class ProfileComponent implements OnInit {
 
   noOrders : boolean = false;
 
-
   // user : types.User = {"pk_username": "testuser", "email": "test@user.at", "name": "Test", "surname": "User", "billingaddress": "my fancy address", "deliveryaddress": "my super facy address"};
   constructor(
     private webshopService: WebshopService,
