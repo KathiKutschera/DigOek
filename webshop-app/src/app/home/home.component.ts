@@ -31,24 +31,28 @@ export class HomeComponent implements OnInit {
   addProductToShoppingCart(){
     // TODO: something like these checks
 
-    // for(var i = 0; i < this.products.length; i++) {
-    //   if (this.products[i].hasOwnProperty("amount")){
-    //     if (this.products[i].amount < 0){
-    //       this.info = `There is a negative amount of ${this.products[i].name}. Therefore, your order will not be processed.`;
-    //       return;
-    //     }
-    //     if (Number.isInteger(this.products[i].amount) && this.products[i].amount > 0) {
-    //       foundAtLeastOne = true;
-    //       order.push({productID : this.products[i].id, amount : this.products[i].amount});
-    //     }
-    //   }
-    // }
-    // if (!foundAtLeastOne){
-    //   this.info = `There is no single amount correctly given. Therefore, your order will not be processed.`;
-    //   return;
-    // }
+     for(var i = 0; i < this.products.length; i++) {
+      let amount2 = parseInt((<HTMLInputElement>document.getElementById(`${this.products[i].pk_productid}`)).value);
+       if (this.products[i].hasOwnProperty("amount")){
+         if (this.products[i].amountavailable < amount2){
+           window.alert(`There is a negative amount of ${this.products[i].name}. Therefore, your order will not be processed.`);
+           return;
+         }
+         if (this.products[i].amountavailable >= amount2) {
+           let targ :types.CartItems = {"pk_cartid":0,"amount":amount2, "price":this.products[i].price, "fk_pk_username":this.webshopService.getUsername(), "fk_pk_productid":
+              this.products[i].pk_productid};
+            this.webshopService.postCartItem(targ)
+            .catch(err => {
+              console.error(err);
+            });
+           
+         }
+       }
+     }
 
     // TODO: add item to shopping cart
+
+
   }
 
 }

@@ -230,6 +230,17 @@ export class WebshopService {
     .catch(this.handleError);
   }
 
+  postCartItem(p:types.CartItems):Promise<number>{
+    return this.http.post(`${this.url}/rest/cart`, p,{
+      headers:new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response)=>{
+      console.log(response);
+      return response
+    })
+    .catch(this.handleError);
+  }
 
 
   private handleError(error: any): Promise<any> {
