@@ -112,7 +112,7 @@ export class ShoppingCart {
    public getShoppingCart = {
     'spec': {
       description : "Operations about Shopping Cart Items",
-      path : "/cart/",
+      path : "/cart",
       method: "GET",
       summary : "Get one shopping cart collection for one user",
       notes : "Returns a shopping cart collection for one user",
@@ -225,7 +225,7 @@ export class ShoppingCart {
       if (! req.hasOwnProperty ('auth')) {
         return reject ("Not logged in");
       }
-      let sql = "SELECT * FROM shoppingcartitems where fk_pk_username = $1"
+      let sql = "SELECT * FROM shoppingcartitems where fk_pk_username = '$1'"
         + " AND pk_cartid = $2";
 	  console.log("this is the query" + sql);
       let params: [string | number] = [req.auth.username, 
@@ -252,9 +252,9 @@ export class ShoppingCart {
         return reject ("Not logged in");
       }
       let sql = "SELECT * FROM shoppingcartitems WHERE "
-       + "fk_pk_username=" + auth.user;
+       + "fk_pk_username='" + auth.user+"'";
       let params: [string | number] = [limit || this.defaultLimit, offset || 0];
-      sql += "  LIMIT $1 OFFSET $2";
+      sql += "'  LIMIT $1 OFFSET $2";
       this.pool
       .query (sql, params)
       .then (res => {
@@ -341,8 +341,9 @@ export class ShoppingCart {
         }
   
         let sql = "DELETE FROM shoppingcartitems where " + 
-        "pk_cartid = $1 RETURNING *";
-        let params: [number] = [req.params.id];
+        "pk_cartid = $1 AND fk_pk_username='$2' RETURNING *";
+        let params: [number | string] = [req.params.id, 
+          req.auth.username];
         this.pool
         .query (sql, params)
         .then (res => {
@@ -389,7 +390,8 @@ export class ShoppingCart {
       // let orderdate = req.body.orderdate; 
             
         sql2 += " WHERE pk_cartid = " + 
-         `${id}`;
+         `${id}` +" AND fk_pk_username='"+
+          req.auth.username+"'";
         
         // check 
         console.log(sql2);
