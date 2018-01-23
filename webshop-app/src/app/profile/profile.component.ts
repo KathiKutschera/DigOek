@@ -146,11 +146,11 @@ export class ProfileComponent implements OnInit {
   saveChangesAdmin(u : types.User) : void {
     console.log("USER TO CHANGE: " + JSON.stringify(u));
 
+    u.pwhash = undefined;
+
     this.webshopService.putUser(u).then((data) => {
 
-      // need to get and set his password....
-      u.pwhash = undefined;
-
+      // need to get and set his password.... otherwise the new password is the hashed pwhash
       console.log("data: " + JSON.stringify(data, null, 2));
       if(data){
         // seems like it worked

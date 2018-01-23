@@ -366,11 +366,11 @@ class Users {
             let i = 0;
             for (; i < allFields.length; i++) {
                 if (req.body.hasOwnProperty(allFields[i])) {
-                    if (i != 0) {
+                    if (params.length > 0) {
                         sql1 += `, `;
                         sql2 += `, `;
                     }
-                    sql1 += ` ${allFields[i]} = $${i + 1}`;
+                    sql1 += ` ${allFields[i]} = $${params.length + 1}`;
                     sql2 += ` ${allFields[i]}`;
                     if (allFields[i] == "pwhash") {
                         params.push(crypto.createHash('sha256').update(req.body[allFields[i]]).digest('base64'));
@@ -381,14 +381,14 @@ class Users {
                 }
             }
             sql2 += `, pk_username) SELECT `;
-            for (let j = 0; j < i; j++) {
+            for (let j = 0; j < params.length; j++) {
                 if (j != 0) {
                     sql2 += `, `;
                 }
                 sql2 += `$${j + 1}`;
             }
-            sql1 += ` WHERE pk_username = $${i + 1};`;
-            sql2 += ` , CAST($${i + 1} as VARCHAR) WHERE NOT EXISTS (SELECT 1 FROM users WHERE pk_username = $${i + 1});`;
+            sql1 += ` WHERE pk_username = $${params.length + 1};`;
+            sql2 += ` , CAST($${params.length + 1} as VARCHAR) WHERE NOT EXISTS (SELECT 1 FROM users WHERE pk_username = $${params.length + 1});`;
             params.push(req.params.username);
             console.log(sql1);
             console.log(sql2);
