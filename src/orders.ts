@@ -470,16 +470,12 @@ export class Orders {
 			  console.log ("no ITEMS!! ");
 		  }
 		  		  
-		});
-        
-        
-        
-        })
+		})
 			.catch ( error => {
 			  console.error(sql2 + " with params "+JSON.stringify (params2) + ": " + error.toString());
 			  reject (error.toString());
 			});
-
+    });
     }
 			
 
