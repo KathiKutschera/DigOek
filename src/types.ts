@@ -42,11 +42,19 @@ export interface Username {
 
 export interface Order {
   pk_orderid: number,
-  orderdata: string,
+  orderdate: string,
   deliverydate: string,
   paymentstate: string,
   paymentmethod: string,
   price: number
+}
+
+export interface OrderItem {
+  pk_fk_itemID: number,
+  price: number,
+  amount: number,
+  fk_pk_orderID? : number,
+  fk_productID? : number
 }
 
 export interface Productgroup {

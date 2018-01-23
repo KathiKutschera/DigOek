@@ -97,7 +97,23 @@
   </form>
   <br/>
 
-  <h1 *ngIf="showPrevOrders">
-    Orders will be visible here!
-  </h1>
+<!-- <div class="container-fluid"> -->
+  <div *ngIf="showPrevOrders">
+    <div class="list-group">
+      <div *ngFor="let order of orders; index as i">
+        <button type="button" name={{order.pk_orderid}} class="list-group-item list-group-item-action" (click)="order.showDetails = true">
+          {{order.orderdate}}
+        </button>
+        <div *ngIf="order.showDetails">
+          {{order.pk_orderid}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h5 *ngIf="showPrevOrders && noOrders">
+    "We didn't find any previous orders of you."
+  </h5>
+
+
 </div>

@@ -39,16 +39,26 @@ export interface CartItems {
 
 export interface Order {
   pk_orderid: number,
-  orderdata: string,
-  deliverydate: string,
-  paymentstate: string,
-  paymentmethod: string,
-  price: number
+  orderdate?: string,
+  deliverydate?: string,
+  paymentstate?: string,
+  paymentmethod?: string,
+  price?: number,
+  items? : OrderItem[];
+  showDetails? : boolean
+}
+
+export interface OrderItem {
+  pk_fk_itemID: number,
+  price: number,
+  amount: number,
+  fk_pk_orderID? : number,
+  fk_productID? : number
 }
 
 export interface Productgroup {
   pk_groupid: number,
-  description: string,
+  description?: string,
   name: string,
   iconclass: string
 }

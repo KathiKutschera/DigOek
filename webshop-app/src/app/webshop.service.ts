@@ -141,6 +141,23 @@ export class WebshopService {
   }
 
 
+  // get Orders
+  getOrders() : Promise<types.Order[]> {
+    let params = new HttpParams();
+    params = params.append('limit', "100");
+    return this.http.get(`${this.url}/rest/orders`, {
+      params: params,
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      // console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+
   // get Productgroups
   getProductGroups() : Promise<types.Productgroup[]> {
     return this.http.get(`${this.url}/rest/groups`, {

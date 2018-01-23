@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { WebshopService } from '../webshop.service';
 import { Router } from "@angular/router";
 
+import * as moment from 'moment';
+
 import * as types from '../types';
 
 @Component({
@@ -12,6 +14,8 @@ import * as types from '../types';
 export class ProfileComponent implements OnInit {
 
   user : types.User;
+  orders : types.Order[] = [];
+
   showPrevOrders : boolean = false;
   showProfileDetails : boolean = true;
 
@@ -21,6 +25,9 @@ export class ProfileComponent implements OnInit {
   errorMessage : string;
   successMessage : string;
 
+  noOrders : boolean = false;
+
+
   // user : types.User = {"pk_username": "testuser", "email": "test@user.at", "name": "Test", "surname": "User", "billingaddress": "my fancy address", "deliveryaddress": "my super facy address"};
   constructor(
     private webshopService: WebshopService,
@@ -28,6 +35,12 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.getUsers();
+    this.getOrders();
+  }
+
+
+  getUsers() : void {
     this.webshopService.getUsers(this.webshopService.getUsername()).then((data) => {
       let users : types.User[] = data;
       console.log("data: " + JSON.stringify(data, null, 2));
@@ -42,9 +55,7 @@ export class ProfileComponent implements OnInit {
       console.error(err);
       this.router.navigate(['/home']);
     });
-
   }
-
 
   saveChanges(): void {
     console.log("user: " + JSON.stringify(this.user, null, 2));
@@ -110,6 +121,25 @@ export class ProfileComponent implements OnInit {
       this.errorMessage = "You may have open bills. Users with open bills cannot be deleted.";
     });
   }
+
+
+  getOrders(): void {
+    this.webshopService.getOrders().then((data) => {
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data){
+        // seems like it worked
+        this.orders = data;
+        console.log("this.orders[0].orderdate : " + moment().format(this.orders[0].orderdate));
+        this.noOrders = false;
+      } else {
+        this.orders = undefined;
+        this.noOrders = true;
+      }
+    }).catch(err => {
+      console.error(err);
+    });
+  }
+
 
 
 }
