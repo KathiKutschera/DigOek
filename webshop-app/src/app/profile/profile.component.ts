@@ -129,17 +129,26 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  deleteUser(): void {
-    this.webshopService.deleteUser().then((data) => {
+  deleteUser(u? : types.User): void {
+    this.webshopService.deleteUser(u)
+    .then((data) => {
       console.log("data: " + JSON.stringify(data, null, 2));
       if(data){
         // seems like it worked
-        this.successMessage = "Successfully deleted your profile."
+        if(u){
+          u.successMessageEdit = `Successfully deleted ${u? u.pk_username.concat('s') : 'your'} profile.`;
+        } else{
+          this.successMessage = `Successfully deleted ${u? u.pk_username.concat('s') : 'your'} profile.`;
 
+        }
       }
     }).catch(err => {
       console.error(err);
-      this.errorMessage = "You may have open bills. Users with open bills cannot be deleted.";
+      if (u) {
+        u.errorMessageEdit = `${u.pk_username} may have open bills. Users with open bills cannot be deleted.`;
+      } else {
+        this.errorMessage = "You may have open bills. Users with open bills cannot be deleted.";
+      }
     });
   }
 
@@ -185,6 +194,10 @@ export class ProfileComponent implements OnInit {
     }).catch(err => {
       console.error(err);
     });
+  }
+
+  formatDate(date: string) : string{
+    return moment(date).format('MMMM Do YYYY, h:mm:ss a');
   }
 
 

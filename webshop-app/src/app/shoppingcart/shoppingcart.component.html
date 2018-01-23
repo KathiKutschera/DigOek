@@ -1,3 +1,32 @@
-<p>
-  shoppingcart works!
-</p>
+<div class="container-fluid" *ngIf="user">
+
+    <p>
+        Der derzeitige Einkaufswagen
+        <div *ngFor="let cartItem of cart.items; index as i">
+            <button type="button" name={{cartItem.pk_cartID}} 
+            class="list-group-item list-group-item-action" 
+            (click)="cartItem.showDetails = true">
+                {{cartItem.pk_cartID}}
+            </button>
+           <div *ngIf="cartItem.showDetails">
+                <br/>
+                <p *ngIf="cartItem.fk_pk_productID">
+                <b>Delivered Item ID: </b>
+                {{cartItem.fk_pk_productID}}
+                </p>
+                <p>
+                <b>Preis: </b>
+                {{cartItem.price}}
+                </p>
+                <p>
+                <b>Menge: </b>
+                {{cartItem.amount}}
+                </p>
+    
+    
+            </div>
+            
+        </div>
+    </p>
+
+</div>

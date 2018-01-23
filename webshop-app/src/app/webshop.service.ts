@@ -96,8 +96,11 @@ export class WebshopService {
   }
 
   // delete User
-  deleteUser() : Promise<types.Username> {
-    return this.http.delete(`${this.url}/rest/users/${this.username}`, {
+  deleteUser(user?: types.User) : Promise<types.Username> {
+    if(!user){
+      user = { pk_username : this.username };
+    }
+    return this.http.delete(`${this.url}/rest/users/${user.pk_username}`, {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
     .toPromise()
@@ -172,6 +175,18 @@ export class WebshopService {
     .toPromise()
     .then((response) => {
       // console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+
+  getCart() : Promise<types.Cart>{
+    return this.http.get(`${this.url}/rest/cart`, {
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
       return response;
     })
     .catch(this.handleError);
