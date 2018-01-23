@@ -14,10 +14,12 @@ import * as types from '../types';
 export class ProfileComponent implements OnInit {
 
   user : types.User;
+  isAdmin : boolean = false;
   orders : types.Order[] = [];
 
   showPrevOrders : boolean = false;
   showProfileDetails : boolean = true;
+  showUserManagement : boolean  = false;
 
   newPassword : string = undefined;
   newPasswordRepeat : string = undefined;
@@ -37,6 +39,7 @@ export class ProfileComponent implements OnInit {
   ngOnInit() {
     this.getUsers();
     this.getOrders();
+    this.isAdmin = this.webshopService.getUserIsAdmin();
   }
 
 

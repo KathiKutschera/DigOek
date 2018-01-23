@@ -14,13 +14,18 @@ export class AppComponent implements OnInit {
   title = 'app';
 
   showLogin: boolean = false;
+
   username : string = undefined;
+
   loginUsername : string;
   loginPassword: string;
+
   info: string = undefined;
+
   newUser : types.User = {pk_username: "", email: ""};
   newUserPW1 : string = undefined;
   newUserPW2 : string = undefined;
+
   errorMessageAdd : string = undefined;
   successMessageAdd : string = undefined;
 

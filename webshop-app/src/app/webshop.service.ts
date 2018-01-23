@@ -12,6 +12,7 @@ export class WebshopService {
   private url : string;
   private username : string;
   private password : string;
+  private isAdmin : boolean;
 
   public configureEndpoint(url: string) : void {
     this.url = url;
@@ -29,6 +30,7 @@ export class WebshopService {
         console.log("data: " + JSON.stringify(data, null, 2));
         if(users.length == 1){
           // user login successful
+          this.isAdmin = users[0].isadmin;
           return resolve (`${users[0].name} ${users[0].surname}`);
         } else {
           return reject ("fail");
@@ -43,6 +45,10 @@ export class WebshopService {
 
   public getUsername(): string {
       return this.username;
+  }
+
+  public getUserIsAdmin(): boolean {
+      return this.isAdmin;
   }
 
 
