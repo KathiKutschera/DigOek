@@ -24,6 +24,8 @@ export class AppComponent implements OnInit {
   errorMessageAdd : string = undefined;
   successMessageAdd : string = undefined;
 
+  searchTerm : string = undefined;
+
   productgroups: types.Productgroup[] = [];
 
   constructor(

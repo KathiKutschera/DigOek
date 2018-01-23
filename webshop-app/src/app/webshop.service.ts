@@ -119,11 +119,14 @@ export class WebshopService {
 
 
   // get Products
-  getProducts(groupid? : number) : Promise<types.Product[]> {
+  getProducts(groupid? : number, keyword? : string) : Promise<types.Product[]> {
     let params = new HttpParams();
     params = params.append('limit', "100");
     if(groupid){
       params = params.append('groupid', groupid.toString());
+    }
+    if(keyword){
+      params = params.append('keyword', keyword);
     }
     return this.http.get(`${this.url}/rest/products`, {
       params: params,

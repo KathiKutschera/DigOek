@@ -217,8 +217,8 @@
         </li> -->
       </ul>
       <form class="form-inline my-2 my-lg-0">
-        <input class="form-control mr-sm-2" type="text" placeholder="Search">
-        <button class="btn btn-outline-success my-2 my-sm-0" routerLink="/search" type="button">Search</button>
+        <input class="form-control mr-sm-2" type="text" name="search" [(ngModel)]="searchTerm">
+        <button class="btn btn-outline-success my-2 my-sm-0" [routerLink]="['/search', searchTerm]" type="button">Search</button>
       </form>
     </div>
   </nav>
