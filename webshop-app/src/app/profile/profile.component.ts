@@ -19,7 +19,7 @@ export class ProfileComponent implements OnInit {
   users : types.User[] = [];
   products : types.Product[] = [];
 
-  newProduct = {pk_productid : "", name : "", prSoldPer : "", price : null, amountavailable : null, vatrate : null};
+  newProduct : types.Product = {pk_productid : null, name : "", soldper : "", price : null, amountavailable : null, vatrate : null, fk_groupid : null};
 
   showPrevOrders : boolean = false;
   showProfileDetails : boolean = true;
@@ -41,7 +41,6 @@ export class ProfileComponent implements OnInit {
   errorMessageAddProd : string = undefined;
   successMessageAddProd : string = undefined;
 
-  // user : types.User = {"pk_username": "testuser", "email": "test@user.at", "name": "Test", "surname": "User", "billingaddress": "my fancy address", "deliveryaddress": "my super facy address"};
   constructor(
     private webshopService: WebshopService,
     private router: Router
@@ -258,6 +257,7 @@ export class ProfileComponent implements OnInit {
 
 
   addNewProduct() : void {
+    console.log(JSON.stringify(this.newProduct, null, 2));
     if (!this.newProduct.name) {
       this.errorMessageAddProd = "The field 'Name' is a required field. Please fix this and try again."
       return;
@@ -284,7 +284,7 @@ export class ProfileComponent implements OnInit {
       if(data){
         // seems like it worked
         this.successMessageAddProd = "Successfully added new product."
-        this.newProduct = {pk_productid : "", name : "", prSoldPer : "", price : null, amountavailable : null, vatrate : null};
+        this.newProduct = {pk_productid : null, name : "", soldper : "", price : null, amountavailable : null, vatrate : null, fk_groupid : null};
         return;
       } else {
         // should not happen...

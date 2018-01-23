@@ -82,7 +82,8 @@ export interface Product {
   imagename?: string,
   orderdAmount?: number,
   successMessage? : string,
-  errorMessage? : string
+  errorMessage? : string,
+  fk_groupid : number
 }
 
 export interface Productid {

@@ -217,6 +217,7 @@
     <br/>
 
     <form *ngIf="showAddProduct">
+      <br/>
       <div class="form-group">
         <label><b>Name</b></label>
         <input type="text" class="form-control" name="prodName" [(ngModel)]="newProduct.name">
@@ -231,19 +232,19 @@
       </div>
       <div class="form-group">
         <label><b>Price</b></label>
-        <input type="number" class="form-control" name="prodPrice" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="prod.price">
+        <input type="number" class="form-control" name="prodPrice" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="newProduct.price">
       </div>
       <div class="form-group">
         <label><b>Available Amount</b></label>
-        <input type="number" class="form-control" name="prodAvailableAmount" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="prod.amountavailable">
+        <input type="number" class="form-control" name="prodAvailableAmount" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="newProduct.amountavailable">
       </div>
       <div class="form-group">
         <label><b>VAT rate</b></label>
-        <input type="number" class="form-control" name="prodVatRate" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="prod.vatrate">
+        <input type="number" class="form-control" name="prodVatRate" min="0" max="4000" ngMin="0" ngMax="4000" [(ngModel)]="newProduct.vatrate">
       </div>
       <div class="form-group">
         <label><b>Imagename</b></label>
-        <input type="password" class="form-control" name="prodImageName" [(ngModel)]="prod.imagename">
+        <input type="text" class="form-control" name="prodImageName" [(ngModel)]="newProduct.imagename">
       </div>
       <br *ngIf="errorMessageAddProd"/>
       <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessageAddProd">{{errorMessageAddProd}}
@@ -257,10 +258,10 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <button type="button" class="btn btn-lg btn-block btn-success" (click)="addNewProduct()">Add New Product
+      <button type="button" class="btn btn-sm btn-outline-success" (click)="addNewProduct()">Add New Product
         <span><i class="fa fa-plus" aria-hidden="true"></i></span>
       </button>
-      <button type="button" class="btn btn-lg btn-block btn-danger" (click)="">Cancel
+      <button type="button" class="btn btn-sm btn-outline-danger" >Cancel
         <span><i class="fa fa-user-times" aria-hidden="true"></i></span>
       </button>
     </form>

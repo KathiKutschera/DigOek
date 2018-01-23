@@ -218,6 +218,19 @@ export class WebshopService {
     .catch(this.handleError);
   }
 
+  postProduct(p : types.Product) : Promise<types.Product> {
+    return this.http.post(`${this.url}/rest/products`, p, {
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+
 
   private handleError(error: any): Promise<any> {
     console.error('An error occurred', error);
