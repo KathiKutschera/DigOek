@@ -181,7 +181,7 @@ export class WebshopService {
   }
 
 
-  getCart() : Promise<types.Cart>{
+  getCart() : Promise<types.CartItems[]>{
     return this.http.get(`${this.url}/rest/cart`, {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
