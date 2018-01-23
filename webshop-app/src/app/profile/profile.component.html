@@ -167,7 +167,8 @@
         <br/>
         <!-- TODO: USER FORM AND EDIT BUTTON -->
         <form *ngIf="u.showDetails">
-          <div class="form-group">
+
+          <!-- <div class="form-group">
             <label><b>Name</b></label>
             <input type="text" class="form-control" name="eName" [(ngModel)]="u.name">
           </div>
@@ -210,7 +211,7 @@
           <div class="form-group">
             <label><b>Creditcard CCV</b></label>
             <input type="text" class="form-control" name="eNameOnCC" [(ngModel)]="u.ccv">
-          </div>
+          </div> -->
           <br *ngIf="errorMessageEdit"/>
           <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessageEdit">{{errorMessageEdit}}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="errorMessageEdit = ''">
