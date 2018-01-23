@@ -283,7 +283,7 @@ export class ProfileComponent implements OnInit {
       this.errorMessageAddProd = "The field 'Name' is a required field. Please fix this and try again."
       return;
     }
-    if (!this.newProduct.prSoldPer) {
+    if (!this.newProduct.soldper) {
       this.errorMessageAddProd = "The field 'Sold per' is a required field. Please fix this and try again."
       return;
     }
