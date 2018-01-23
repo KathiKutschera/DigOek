@@ -348,22 +348,22 @@ class Products {
                 }
                 if (req.query.name) {
                     if (counter >= 1) {
-                        sql += " AND products.name ~ $" + (counter + 3);
+                        sql += " AND UPPER(products.name) ~ UPPER($" + (counter + 3) + ")";
                     }
                     else {
-                        sql += " products.name ~ $" + (counter + 3);
+                        sql += " UPPER(products.name) ~ UPPER($" + (counter + 3) + ")";
                     }
-                    params.push(req.query.name + '*');
+                    params.push(req.query.name);
                     counter += 1;
                 }
                 if (req.query.keyword) {
                     if (counter >= 1) {
-                        sql += " AND products.description ~ $" + (counter + 3) + " OR products.name ~ $" + (counter + 3);
+                        sql += " AND (UPPER(products.description) ~ UPPER($" + (counter + 3) + ") OR UPPER(products.name) ~ UPPER$" + (counter + 3) + "))";
                     }
                     else {
-                        sql += " products.description ~ $" + (counter + 3) + " OR products.name ~ $" + (counter + 3);
+                        sql += " UPPER(products.description) ~ UPPER($" + (counter + 3) + ") OR UPPER(products.name) ~ UPPER($" + (counter + 3) + ")";
                     }
-                    params.push(req.query.keyword + '*');
+                    params.push(req.query.keyword);
                     counter += 1;
                 }
                 if (req.query.status) {
