@@ -281,7 +281,7 @@ export class Orders {
 		  if (! req.hasOwnProperty ('auth')) {
 			return reject ("Not logged in");
 		  }
-		  let requiredFields = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+		  let requiredFields = ["orderdate", "deliverydate", "paymentstate", "paymentmethod", "price"];
 
 		  for(let i = 0; i < requiredFields.length; i++){
 			if(! req.body.hasOwnProperty(requiredFields[i])){
@@ -291,10 +291,10 @@ export class Orders {
 		  }
 
 		  // create query for insert into orders table
-		  let sql2 = "INSERT INTO orders(";
+		  let sql2 = "INSERT INTO orders(pk_orderid,";
 		  let params2 = [];
 
-		  let allFieldsSql2 = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+		  let allFieldsSql2 = ["orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
 		  let i = 0;
 
 		  for(; i < allFieldsSql2.length; i++){
@@ -309,8 +309,9 @@ export class Orders {
 		  
 		 // let orderdate = req.body.orderdate; 
 
-		  sql2 += `) VALUES (`;
-		  for(let j = 0; j < i; j++){
+		  sql2 += `, fk_username) VALUES (DEFAULT, `;
+		  params2.push(req.auth.user);
+          for(let j = 0; j < i; j++){
 			if(j != 0){
 			  sql2 += `, `;
 			}
@@ -318,20 +319,17 @@ export class Orders {
 
 		  }
 			  
-		  sql2 += `) `;
+		  sql2 += `) RETURNING pk_orderid`;
+          let pk_orderid = 0;
 		  
 		  // check 
 		  console.log(sql2);
 		  console.log(JSON.stringify(params2));
-		  
 		  //insert into db
 		  this.pool
 			.query (sql2, params2)
-			.catch ( error => {
-			  console.error(sql2 + " with params "+JSON.stringify (params2) + ": " + error.toString());
-			  reject (error.toString());
-			});
-		  
+            .then( res => {pk_orderid = res.rows[0].pk_orderid;
+		  console.log("ORDERID "+pk_orderid);
 		  // create query for insert into orderitems table
 		  
 		  let p = 0;
@@ -366,7 +364,8 @@ export class Orders {
 				//  console.log("currentItem stelle " + p + " wert is " + currentItem[allFieldsSql1[p]] + "tag ist " + `${allFieldsSql1[p]}`);
 				
 				//add orderID as foreignkey
-				params1.push(req.body["pk_orderid"]);  
+                //got the id after the insert of the order. Don't change it!
+				params1.push(pk_orderid);  
 				sql1 += `fk_pk_orderid, `;
 				n++;
 				 
@@ -395,7 +394,7 @@ export class Orders {
 				  
 				  //add $[nr] in VALUES()
 				  sql1 += `) VALUES (`;
-				  for(let j = 0; j < n; j++){
+				  for(let j = 0; j < params1.length; j++){
 					if(j != 0){
 					  sql1 += `, `;
 					}
@@ -415,6 +414,8 @@ export class Orders {
 					console.error (sql1 + " with params "+JSON.stringify (params1) + ": " + error.toString());
 					reject (error.toString());
 				  });	
+                  
+                  
 
 			 }
 			 
@@ -426,9 +427,7 @@ export class Orders {
 			for(;i < byed.length; i++){
 				let boughtProduct = byed[i];
 				let boughtAmount = amount[i];
-			  let sql = "SELECT amountavailable FROM "
-			  + "products WHERE " + 
-			  "pk_productid = " + boughtProduct +  ";";
+			  let sql = "SELECT amountavailable FROM products WHERE pk_productid = " + boughtProduct +  ";";
 			  this.pool
 			  .query (sql)
 			  .then (res => {
@@ -439,7 +438,7 @@ export class Orders {
 					console.log(sql3);
 				  
 					this.pool.query (sql3)
-						.then (resolve ({"pk_username": req.body.fk_username}))	
+						.then (resolve ({"pk_username": req.auth.user}))	
 					  .catch ( error => {
 						console.error(sql3 + ": " + error.toString());
 						reject (error.toString());
@@ -459,6 +458,14 @@ export class Orders {
 		  }
 		  		  
 		});
+        
+        
+        
+        })
+			.catch ( error => {
+			  console.error(sql2 + " with params "+JSON.stringify (params2) + ": " + error.toString());
+			  reject (error.toString());
+			});
 
     }
 			

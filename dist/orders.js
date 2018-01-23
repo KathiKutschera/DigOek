@@ -243,7 +243,7 @@ class Orders {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            let requiredFields = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+            let requiredFields = ["orderdate", "deliverydate", "paymentstate", "paymentmethod", "price"];
             for (let i = 0; i < requiredFields.length; i++) {
                 if (!req.body.hasOwnProperty(requiredFields[i])) {
                     reject(`Missing field: ${requiredFields[i]}`);
@@ -251,9 +251,9 @@ class Orders {
                 }
             }
             // create query for insert into orders table
-            let sql2 = "INSERT INTO orders(";
+            let sql2 = "INSERT INTO orders(pk_orderid,";
             let params2 = [];
-            let allFieldsSql2 = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+            let allFieldsSql2 = ["orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
             let i = 0;
             for (; i < allFieldsSql2.length; i++) {
                 if (req.body.hasOwnProperty(allFieldsSql2[i])) {
@@ -265,76 +265,90 @@ class Orders {
                 }
             }
             // let orderdate = req.body.orderdate; 
-            sql2 += `) VALUES (`;
+            sql2 += `, fk_username) VALUES (DEFAULT, `;
+            params2.push(req.auth.user);
             for (let j = 0; j < i; j++) {
                 if (j != 0) {
                     sql2 += `, `;
                 }
                 sql2 += `$${j + 1}`;
             }
-            sql2 += `) `;
+            sql2 += `) RETURNING pk_orderid`;
+            let pk_orderid = 0;
             // check 
             console.log(sql2);
             console.log(JSON.stringify(params2));
             //insert into db
             this.pool
                 .query(sql2, params2)
-                .catch(error => {
-                console.error(sql2 + " with params " + JSON.stringify(params2) + ": " + error.toString());
-                reject(error.toString());
-            });
-            // create query for insert into orderitems table
-            let p = 0;
-            let currentItem;
-            let sql1 = "INSERT INTO orderitems(";
-            let params1 = [];
-            let allFieldsSql1 = ["pk_fk_itemid", "price", "amount", "fk_productid"];
-            let h = 0;
-            let n = 0;
-            let byed = [];
-            let amount = [];
-            //get item array and iterate through it
-            if (req.body.hasOwnProperty("item")) {
-                let arrayOfItems = req.body["item"];
-                for (; p < arrayOfItems.length; p++) {
-                    // reset h, n, parameter and query so that a new query can be made for next item
-                    h = 0;
-                    n = 0;
-                    sql1 = "INSERT INTO orderitems(";
-                    params1 = [];
-                    console.log("ITEMS!! " + JSON.stringify(arrayOfItems[p], null, 2));
-                    currentItem = arrayOfItems[p];
-                    //  console.log("currentItem stelle " + p + " wert is " + currentItem[allFieldsSql1[p]] + "tag ist " + `${allFieldsSql1[p]}`);
-                    //add orderID as foreignkey
-                    params1.push(req.body["pk_orderid"]);
-                    sql1 += `fk_pk_orderid, `;
-                    n++;
-                    for (; h < allFieldsSql1.length; h++) {
-                        if (currentItem.hasOwnProperty(allFieldsSql1[h])) {
-                            if (allFieldsSql1[h] == "fk_productid") {
-                                byed.push(currentItem[allFieldsSql1[h]]);
-                                console.log("pushed to byed " + currentItem[allFieldsSql1[h]]);
+                .then(res => {
+                pk_orderid = res.rows[0].pk_orderid;
+                console.log("ORDERID " + pk_orderid);
+                // create query for insert into orderitems table
+                let p = 0;
+                let currentItem;
+                let sql1 = "INSERT INTO orderitems(";
+                let params1 = [];
+                let allFieldsSql1 = ["pk_fk_itemid", "price", "amount", "fk_productid"];
+                let h = 0;
+                let n = 0;
+                let byed = [];
+                let amount = [];
+                //get item array and iterate through it
+                if (req.body.hasOwnProperty("item")) {
+                    let arrayOfItems = req.body["item"];
+                    for (; p < arrayOfItems.length; p++) {
+                        // reset h, n, parameter and query so that a new query can be made for next item
+                        h = 0;
+                        n = 0;
+                        sql1 = "INSERT INTO orderitems(";
+                        params1 = [];
+                        console.log("ITEMS!! " + JSON.stringify(arrayOfItems[p], null, 2));
+                        currentItem = arrayOfItems[p];
+                        //  console.log("currentItem stelle " + p + " wert is " + currentItem[allFieldsSql1[p]] + "tag ist " + `${allFieldsSql1[p]}`);
+                        //add orderID as foreignkey
+                        //got the id after the insert of the order. Don't change it!
+                        params1.push(pk_orderid);
+                        sql1 += `fk_pk_orderid, `;
+                        n++;
+                        for (; h < allFieldsSql1.length; h++) {
+                            if (currentItem.hasOwnProperty(allFieldsSql1[h])) {
+                                if (allFieldsSql1[h] == "fk_productid") {
+                                    byed.push(currentItem[allFieldsSql1[h]]);
+                                    console.log("pushed to byed " + currentItem[allFieldsSql1[h]]);
+                                }
+                                if (allFieldsSql1[h] == "amount") {
+                                    amount.push(currentItem[allFieldsSql1[h]]);
+                                    console.log("pushed to amount " + currentItem[allFieldsSql1[h]]);
+                                }
+                                if (h != 0) {
+                                    sql1 += `, `;
+                                }
+                                console.log("TAG is " + allFieldsSql1[h] + " and h is " + h + "and value is " + currentItem[allFieldsSql1[h]]);
+                                sql1 += ` ${allFieldsSql1[h]}`;
+                                params1.push(currentItem[allFieldsSql1[h]]);
+                                n++;
                             }
-                            if (allFieldsSql1[h] == "amount") {
-                                amount.push(currentItem[allFieldsSql1[h]]);
-                                console.log("pushed to amount " + currentItem[allFieldsSql1[h]]);
-                            }
-                            if (h != 0) {
+                        }
+                        //add $[nr] in VALUES()
+                        sql1 += `) VALUES (`;
+                        for (let j = 0; j < params1.length; j++) {
+                            if (j != 0) {
                                 sql1 += `, `;
                             }
-                            console.log("TAG is " + allFieldsSql1[h] + " and h is " + h + "and value is " + currentItem[allFieldsSql1[h]]);
-                            sql1 += ` ${allFieldsSql1[h]}`;
-                            params1.push(currentItem[allFieldsSql1[h]]);
-                            n++;
+                            sql1 += `$${j + 1}`;
                         }
-                    }
-                    //add $[nr] in VALUES()
-                    sql1 += `) VALUES (`;
-                    for (let j = 0; j < n; j++) {
-                        if (j != 0) {
-                            sql1 += `, `;
-                        }
-                        sql1 += `$${j + 1}`;
+                        sql1 += `) `;
+                        // check current status of query sql1
+                        console.log(sql1);
+                        console.log(JSON.stringify(params1));
+                        // make insert query on DB for the current item
+                        this.pool
+                            .query(sql1, params1)
+                            .catch(error => {
+                            console.error(sql1 + " with params " + JSON.stringify(params1) + ": " + error.toString());
+                            reject(error.toString());
+                        });
                     }
                     sql1 += `) `;
                     // check current status of query sql1
@@ -367,20 +381,23 @@ class Orders {
                         console.log(sql3);
                         this.pool.query(sql3)
                             .then(resolve({ "pk_username": req.body.fk_username }))
+
                             .catch(error => {
-                            console.error(sql3 + ": " + error.toString());
+                            console.error(sql + ": " + error.toString());
                             reject(error.toString());
                         });
-                    })
-                        .catch(error => {
-                        console.error(sql + ": " + error.toString());
-                        reject(error.toString());
-                    });
+                    }
+                    /////////// FROM BERNHARD (END)
                 }
-            }
-            else {
-                console.log("no ITEMS!! ");
-            }
+
+                else {
+                    console.log("no ITEMS!! ");
+                }
+            });
+        })
+            .catch(error => {
+            console.error(sql2 + " with params " + JSON.stringify(params2) + ": " + error.toString());
+            reject(error.toString());
         });
     }
     doDeleteOrders(req) {
