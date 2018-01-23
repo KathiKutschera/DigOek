@@ -477,11 +477,11 @@ export class Orders {
 			return reject ("Not logged in");
 			}
 			
-		// query status of order: order can only be deleted if status is not "delivered"
+		// query status of order: order can only be deleted if delivery date is null
 			//TODO let sql = "DELETE FROM orders where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
       
 		
-					let sql = "DELETE FROM orders where pk_orderid = $1 RETURNING *";
+					let sql = "DELETE FROM orders where pk_orderid = $1 AND deliverydate IS NULL RETURNING *";
 					let params: [number] = [req.params.id];
 					this.pool
 					.query (sql, params)
@@ -489,7 +489,7 @@ export class Orders {
 						if(res.rows.length == 1){
 							resolve (res.rows);
 						} else {
-							reject ("No such order");
+							reject ("No such order / delivery date already set");
 						}
 					})
 					.catch (error => {

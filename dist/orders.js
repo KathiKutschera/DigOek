@@ -350,46 +350,34 @@ class Orders {
                             reject(error.toString());
                         });
                     }
-                    sql1 += `) `;
-                    // check current status of query sql1
-                    console.log(sql1);
-                    console.log(JSON.stringify(params1));
-                    // make insert query on DB for the current item
-                    this.pool
-                        .query(sql1, params1)
-                        .catch(error => {
-                        console.error(sql1 + " with params " + JSON.stringify(params1) + ": " + error.toString());
-                        reject(error.toString());
-                    });
-                }
-                //Update available products   
-                i = 0;
-                let base = [];
-                for (; i < byed.length; i++) {
-                    let boughtProduct = byed[i];
-                    let boughtAmount = amount[i];
-                    let sql = "SELECT amountavailable FROM "
-                        + "products WHERE " +
-                        "pk_productid = " + boughtProduct + ";";
-                    this.pool
-                        .query(sql)
-                        .then(res => {
-                        let val = res.rows[0].amountavailable - boughtAmount;
-                        let sql3 = "UPDATE products SET amountavailable = " +
-                            val +
-                            " WHERE pk_productid = " + boughtProduct + ";";
-                        console.log(sql3);
-                        this.pool.query(sql3)
-                            .then(resolve({ "pk_username": req.body.fk_username }))
-
+                    //Update available products   
+                    i = 0;
+                    let base = [];
+                    for (; i < byed.length; i++) {
+                        let boughtProduct = byed[i];
+                        let boughtAmount = amount[i];
+                        let sql = "SELECT amountavailable FROM products WHERE pk_productid = " + boughtProduct + ";";
+                        this.pool
+                            .query(sql)
+                            .then(res => {
+                            let val = res.rows[0].amountavailable - boughtAmount;
+                            let sql3 = "UPDATE products SET amountavailable = " +
+                                val +
+                                " WHERE pk_productid = " + boughtProduct + ";";
+                            console.log(sql3);
+                            this.pool.query(sql3)
+                                .then(resolve({ "pk_username": req.auth.user }))
+                                .catch(error => {
+                                console.error(sql3 + ": " + error.toString());
+                                reject(error.toString());
+                            });
+                        })
                             .catch(error => {
                             console.error(sql + ": " + error.toString());
                             reject(error.toString());
                         });
                     }
-                    /////////// FROM BERNHARD (END)
                 }
-
                 else {
                     console.log("no ITEMS!! ");
                 }
@@ -405,9 +393,9 @@ class Orders {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            // query status of order: order can only be deleted if status is not "delivered"
+            // query status of order: order can only be deleted if delivery date is null
             //TODO let sql = "DELETE FROM orders where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
-            let sql = "DELETE FROM orders where pk_orderid = $1 RETURNING *";
+            let sql = "DELETE FROM orders where pk_orderid = $1 AND deliverydate IS NULL RETURNING *";
             let params = [req.params.id];
             this.pool
                 .query(sql, params)
@@ -416,7 +404,7 @@ class Orders {
                     resolve(res.rows);
                 }
                 else {
-                    reject("No such order");
+                    reject("No such order / delivery date already set");
                 }
             })
                 .catch(error => {
