@@ -198,7 +198,37 @@
   </div>
 
   <div *ngIf="showProductManagement">
-    <p> product management </p>
+    <h4> Products: </h4>
+    <br/>
+    <div class="list-group">
+      <div *ngFor="let p of products; index as i">
+        <br/>
+        <button type="button" name={{p.pk_productid}} class="list-group-item list-group-item-action" (click)="p.showDetails = !p.showDetails">
+          {{p.name}} - ID: {{p.pk_productid}}
+        </button>
+        <br/>
+        <div *ngIf="p.showDetails">
+          <label><b>Name: </b></label>
+          <input class="form-control" name="prName" type="text" [(ngModel)]="p.name"/>&nbsp;
+          <br/>
+          <label><b>Description: </b></label>
+          <input class="form-control" name="prDescr" type="text" [(ngModel)]="p.description"/>&nbsp;
+          <br/>
+          <label><b>Sold per: </b></label>
+          <input class="form-control" name="prSoldPer" type="text" [(ngModel)]="p.soldper"/>&nbsp;
+          <br/>
+          <label><b>Price: </b></label>
+          <input class="form-control" name="prPrice" type="text" [(ngModel)]="p.price"/>&nbsp;
+          <br/>
+          <label><b>Available Amount: </b></label>
+          <input class="form-control" type="number" min="0" max="99" ngMin="0" ngMax="99" name="{{p.pk_productid}}" [(ngModel)]="p.amountavailable"/>&nbsp;
+          <br/>
+          <button type="button" class="btn btn-outline-success" (click)="updateProduct(p)">
+            SaveChanges <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
+          </button>
+          <br/> &nbsp;
+        </div>
+    </div>
   </div>
 
 </div>

@@ -16,6 +16,7 @@ export class AppComponent implements OnInit {
   showLogin: boolean = false;
 
   username : string = undefined;
+  isAdmin : boolean = false;
 
   loginUsername : string;
   loginPassword: string;
@@ -43,7 +44,13 @@ export class AppComponent implements OnInit {
   // on init : get products....
   ngOnInit() {
     this.getProductGroups();
+    this.isAdmin = this.webshopService.getUserIsAdmin();
   }
+
+  isUserAdmin() : boolean {
+    return this.webshopService.getUserIsAdmin();
+  }
+
 
   login() {
     let result : string;
