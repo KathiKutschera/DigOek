@@ -30,8 +30,12 @@ class ShoppingCart {
                 ]
             },
             'action': (req, res) => {
-                if (!req.params.username) {
-                    throw swagger.errors.invalid('username');
+                if (!req.params.id) {
+                    throw swagger.errors.invalid('id');
+                }
+                let id = parseInt(req.params.id);
+                if (isNaN(id)) {
+                    throw swagger.errors.invalid('id');
                 }
                 this.doGetCartItems(req)
                     .then(result => res.send(JSON.stringify(result)))
@@ -73,7 +77,7 @@ class ShoppingCart {
         this.getShoppingCart = {
             'spec': {
                 description: "Operations about Shopping Cart Items",
-                path: "/cart/",
+                path: "/cart",
                 method: "GET",
                 summary: "Get one shopping cart collection for one user",
                 notes: "Returns a shopping cart collection for one user",
@@ -91,13 +95,6 @@ class ShoppingCart {
                 ]
             },
             'action': (req, res) => {
-                if (!req.params.id) {
-                    throw swagger.errors.invalid('id');
-                }
-                let id = parseInt(req.params.id);
-                if (isNaN(id)) {
-                    throw swagger.errors.invalid('id');
-                }
                 this.doGetCart(req, req.auth, req.query.limit, req.query.offset)
                     .then(result => res.send(JSON.stringify(result)))
                     .catch(error => res.status(500).send({
@@ -146,7 +143,8 @@ class ShoppingCart {
                 nickname: "putCartItemByID",
                 produces: ["application/json"],
                 parameters: [
-                    swagger.params.path("id", "ID of the cart item", "long")
+                    swagger.params.path("id", "ID of the cart item", "long"),
+                    swagger.params.body("body", "Data of the cart item", "string")
                 ],
                 responseMessages: [
                     { "code": 400, "message": 'invalid id' },
@@ -194,10 +192,9 @@ class ShoppingCart {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            let sql = "SELECT * FROM shoppingcartitems where fk_pk_username = $1"
-                + " AND pk_cartid = $2";
+            let sql = "SELECT * FROM shoppingcartitems where fk_pk_username = $1 AND pk_cartid = $2";
             console.log("this is the query" + sql);
-            let params = [req.auth.username,
+            let params = [req.auth.user,
                 req.params.id];
             this.pool
                 .query(sql, params)
@@ -220,10 +217,10 @@ class ShoppingCart {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            let sql = "SELECT * FROM shoppingcartitems WHERE "
-                + "fk_pk_username=" + auth.user;
+            let sql = "SELECT * FROM shoppingcartitems WHERE fk_pk_username = $3";
             let params = [limit || this.defaultLimit, offset || 0];
-            sql += "  LIMIT $1 OFFSET $2";
+            sql += " LIMIT $1 OFFSET $2";
+            params.push(req.auth.user);
             this.pool
                 .query(sql, params)
                 .then(res => {
@@ -240,8 +237,8 @@ class ShoppingCart {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            let requiredFields = ["pk_cartid", "amount",
-                "price", "fk_pk_username", "fk_pk_productid"];
+            let requiredFields = ["amount",
+                "price", "fk_pk_productid"];
             for (let i = 0; i < requiredFields.length; i++) {
                 if (!req.body.hasOwnProperty(requiredFields[i])) {
                     reject(`Missing field: ${requiredFields[i]}`);
@@ -249,10 +246,11 @@ class ShoppingCart {
                 }
             }
             // create query for insert into orders table
-            let sql2 = "INSERT INTO shoppingcartitems(";
+            let sql2 = "INSERT INTO shoppingcartitems(fk_pk_username";
             let params2 = [];
+            params2.push(req.auth.user);
             let allFieldsSql2 = ["pk_cartid", "amount",
-                "price", "fk_pk_username", "fk_pk_productid"];
+                "price", "fk_pk_productid"];
             let i = 0;
             for (; i < allFieldsSql2.length; i++) {
                 if (req.body.hasOwnProperty(allFieldsSql2[i])) {
@@ -265,24 +263,26 @@ class ShoppingCart {
             }
             // let orderdate = req.body.orderdate; 
             sql2 += `) VALUES (`;
-            for (let j = 0; j < i; j++) {
+            for (let j = 0; j < params2.length; j++) {
                 if (j != 0) {
                     sql2 += `, `;
                 }
                 sql2 += `$${j + 1}`;
             }
-            sql2 += `) `;
+            sql2 += `) RETURNING *`;
             // check 
             console.log(sql2);
             console.log(JSON.stringify(params2));
             //insert into db
             this.pool
                 .query(sql2, params2)
+                .then(res => {
+                resolve(res.rows);
+            })
                 .catch(error => {
                 console.error(sql2 + " with params " + JSON.stringify(params2) + ": " + error.toString());
                 reject(error.toString());
             });
-            // create query for insert into orderitems table
         });
     }
     doDeleteShoppingcartitems(req) {
@@ -290,9 +290,9 @@ class ShoppingCart {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            let sql = "DELETE FROM shoppingcartitems where " +
-                "pk_cartid = $1 RETURNING *";
-            let params = [req.params.id];
+            let sql = "DELETE FROM shoppingcartitems where pk_cartid = $1 AND fk_pk_username=$2 RETURNING *";
+            let params = [req.params.id,
+                req.auth.user];
             this.pool
                 .query(sql, params)
                 .then(res => {
@@ -314,30 +314,33 @@ class ShoppingCart {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            let requiredFields = ["pk_cartid", "amount",
-                "price", "fk_pk_username", "fk_pk_productid"];
-            // create query for insert into orders table
-            let sql2 = "UPDATE INTO shoppingcartitems SET ";
-            let allFieldsSql2 = ["pk_cartid", "amount",
-                "price", "fk_pk_username", "fk_pk_productid"];
+            let sql2 = "UPDATE shoppingcartitems SET ";
+            let allFieldsSql2 = ["amount",
+                "price", "fk_pk_productid"];
             let i = 0;
             for (; i < allFieldsSql2.length; i++) {
                 if (req.body.hasOwnProperty(allFieldsSql2[i])) {
                     if (i != 0) {
                         sql2 += `, `;
                     }
-                    sql2 += `${allFieldsSql2[i]}` + " = '"
-                        + `${req.body[allFieldsSql2[i]]}` + "'";
+                    sql2 += ` ${allFieldsSql2[i]} = ${req.body[allFieldsSql2[i]]}`;
                 }
             }
-            // let orderdate = req.body.orderdate; 
-            sql2 += " WHERE pk_cartid = " +
-                `${id}`;
+            sql2 += ` WHERE pk_cartid = ${id} AND fk_pk_username = ` +
+                req.auth.user + " RETURNING *";
             // check 
             console.log(sql2);
             //insert into db
             this.pool
                 .query(sql2)
+                .then(res => {
+                if (res.rows.length == 1) {
+                    resolve(res.rows);
+                }
+                else {
+                    reject("No such shoppingcartitem or not your data");
+                }
+            })
                 .catch(error => {
                 console.error(sql2 + ": " + error.toString());
                 reject(error.toString());
