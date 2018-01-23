@@ -9,9 +9,9 @@
             </button>
            <div *ngIf="cartItem.showDetails">
                 <br/>
-                <p *ngIf="cartItem.fk_pk_productid">
-                <b>Delivered Item ID: </b>
-                {{cartItem.fk_pk_productid}}
+                <p *ngIf="cartItem.productName">
+                <b>Delivered Item: </b>
+                {{cartItem.productName}}
                 </p>
                 <p>
                 <b>Preis: </b>

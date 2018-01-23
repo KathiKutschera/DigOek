@@ -27,6 +27,24 @@ export class ShoppingcartComponent implements OnInit {
         console.log("data: " + JSON.stringify(data, null, 2));
         this.cart = data;
         
+        //go through all elements and find out their name
+        this.webshopService.getProducts().then((data)=>{
+          let prod:types.Product[] = data;
+          let i = 0;
+          for(;i < this.cart.length;i++){
+            //Search for the product of this item
+            let a = 0;
+            let name:string;
+            for(;a < prod.length && name === undefined; a++){
+              if(prod[a].pk_productid==this.cart[i].fk_pk_productid){
+                name = prod[a].name;
+              }
+            }
+            this.cart[i].productName=name;
+          }
+        })
+        
+
       }).catch(err => {
         console.error(err);
         this.router.navigate(['/home']);
