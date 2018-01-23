@@ -464,6 +464,7 @@ public getProductGroupById = {
         // OK
         let sql = "UPDATE products SET";
         let params = [];
+		
         
         let allFields = ["name", "description", "soldper", "price", "amountavailable", "vatrate", "imagename", "fk_groupid"];
       let i = 0;
@@ -480,7 +481,7 @@ public getProductGroupById = {
       }
       params.push(req.params.id);
       sql += ` WHERE pk_productid = $`+(j+1)+';';
-        
+         
         this.pool
         .query(sql, params)
         .then ( _ => resolve ({"pk_productid": req.params.id}))

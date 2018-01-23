@@ -293,39 +293,6 @@ class Orders {
             let n = 0;
             let byed = [];
             let amount = [];
-            /////////// FROM BERNHARD (START)
-            /*    for(; h < allFieldsSql1.length; h++){
-                 if(req.body.hasOwnProperty(allFieldsSql1[h])){
-                   if( allFieldsSql1[h] == "pk_orderid" ){
-                       console.log("TAG is " + allFieldsSql1[h] + " so im in if and h is " + h);
-                       n++;
-                       if(h != 0){
-                 sql1 += `, `;
-                 if(h == 4){
-                   byed.push(req.body[allFieldsSql1[h]]);
-                 }
-                 else if(h == 3){
-                   amount.push(req.body[allFieldsSql1[h]]);
-                 }
-                     }
-                     sql1 += `fk_pk_orderid`;
-                     params1.push(req.body[allFieldsSql1[h]]);
-         
-                         console.log("pushed paramenter  " + req.body[allFieldsSql1[h]] +  "  into sql1");
-                   }
-                   
-                    if( allFieldsSql1[h] != "pk_orderid" ){
-                   if(h != 0){
-                     sql1 += `, `;
-                   }
-                   console.log("TAG is " + allFieldsSql1[h] + " and h is " + h);
-                   sql1 += ` ${allFieldsSql1[h]}`;
-                         params1.push(req.body[allFieldsSql1[h]]);
-                   n++;
-                   }
-                 }
-               } */
-            /////////// FROM BERNHARD (END)  
             //get item array and iterate through it
             if (req.body.hasOwnProperty("item")) {
                 let arrayOfItems = req.body["item"];
@@ -379,48 +346,52 @@ class Orders {
                         .catch(error => {
                         console.error(sql1 + " with params " + JSON.stringify(params1) + ": " + error.toString());
                         reject(error.toString());
-                    })
-                        .then(resolve({ "pk_username": req.body.fk_username }));
+                    });
                 }
+                /////////// FROM BERNHARD (START)  
+                //Update available products   UPDATE products SET name = $1 WHERE pk_productid = $2;
+                i = 0;
+                let base = [];
+                for (; i < byed.length; i++) {
+                    let boughtProduct = byed[i];
+                    let boughtAmount = amount[i];
+                    let sql = "SELECT amountavailable FROM "
+                        + "products WHERE " +
+                        "pk_productid = " + boughtProduct + ";";
+                    this.pool
+                        .query(sql)
+                        .then(res => {
+                        let val = res.rows[0].amountavailable - boughtAmount;
+                        let sql3 = "UPDATE products SET amountavailable = " +
+                            val +
+                            " WHERE pk_productid = " + boughtProduct + ";";
+                        console.log(sql3);
+                        this.pool.query(sql3)
+                            .then(resolve({ "pk_username": req.body.fk_username }))
+                            .catch(error => {
+                            console.error(sql3 + ": " + error.toString());
+                            reject(error.toString());
+                        });
+                    })
+                        .catch(error => {
+                        console.error(sql + ": " + error.toString());
+                        reject(error.toString());
+                    });
+                }
+                /////////// FROM BERNHARD (END)
             }
             else {
                 console.log("no ITEMS!! ");
             }
-            /////////// FROM BERNHARD (START)  
-            //Update available products
-            i = 0;
-            let base = [];
-            for (; i < byed.length; i++) {
-                let sql = "SELECT amountavailable FROM "
-                    + "products WHERE " +
-                    "pk_productid = " + `${byed[i]}` + ";";
-                this.pool
-                    .query(sql)
-                    .then(res => {
-                    let val = res.rows[0].amountavailable - amount[i];
-                    let sql3 = "UPDATE products SET amountavailable = " +
-                        `${val}` +
-                        " WHERE pk_productid=" + `${byed[i]}` + ";";
-                    console.log(sql3);
-                    this.pool.query(sql3)
-                        .catch(error => {
-                        console.error(sql3 + ": " + error.toString());
-                        reject(error.toString());
-                    });
-                })
-                    .catch(error => {
-                    console.error(sql + ": " + error.toString());
-                    reject(error.toString());
-                });
-            }
         });
     }
-    /////////// FROM BERNHARD (END)
     doDeleteOrders(req) {
         return new Promise((resolve, reject) => {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
+            // query status of order: order can only be deleted if status is not "delivered"
+            //TODO let sql = "DELETE FROM orders where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
             let sql = "DELETE FROM orders where pk_orderid = $1 RETURNING *";
             let params = [req.params.id];
             this.pool
@@ -459,7 +430,7 @@ class Orders {
                 }
             })
                 .catch(error => {
-                console.error(sql + " with params " + JSON.stringify(params) + ": " + error.toString());
+                console.error(sql + ": " + error.toString());
                 reject(error.toString());
             })
                 .then(resolve(id));
