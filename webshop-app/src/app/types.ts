@@ -9,7 +9,7 @@ export interface Count {
 export interface User {
   pk_username: string,
   pwhash?: string,
-  email: string,
+  email?: string,
   isadmin?: boolean
   name?: string,
   surname?: string,
@@ -22,7 +22,9 @@ export interface User {
   validyear?: number,
   validmonth?: number,
   ccv?: number,
-  showDetails?: boolean
+  showDetails?: boolean,
+  successMessageEdit? : string,
+  errorMessageEdit? : string
 }
 
 

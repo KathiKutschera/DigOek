@@ -96,8 +96,11 @@ export class WebshopService {
   }
 
   // delete User
-  deleteUser() : Promise<types.Username> {
-    return this.http.delete(`${this.url}/rest/users/${this.username}`, {
+  deleteUser(user?: types.User) : Promise<types.Username> {
+    if(!user){
+      user = { pk_username : this.username };
+    }
+    return this.http.delete(`${this.url}/rest/users/${user.pk_username}`, {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
     .toPromise()
