@@ -38,7 +38,9 @@ export interface CartItems {
   amount : number,
   price : number,
   fk_pk_username? : string,
-  fk_pk_productid? : number
+  fk_pk_productid? : number,
+  //Additional Information for better presentation
+  productName?:string
 }
 
 export interface Order {
@@ -57,7 +59,9 @@ export interface OrderItem {
   price: number,
   amount: number,
   fk_pk_orderID? : number,
-  fk_productID? : number
+  fk_productID? : number,
+  //Additional Information for better presentation
+  productName?:string
 }
 
 export interface Productgroup {
