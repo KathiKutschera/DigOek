@@ -413,7 +413,7 @@ class Orders {
             this.pool
                 .query(sql, params)
                 .then(res => {
-                if (res.rows.length >= 1) {
+                if (res.rows.length == 1) {
                     //Dieser Wert wurde gelöscht --> 
                     //Suchen aller dazugehörigen OrderItems, 
                     //hinzufügen d. Produktanzahl
