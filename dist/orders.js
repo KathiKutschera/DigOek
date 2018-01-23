@@ -348,8 +348,7 @@ class Orders {
                         reject(error.toString());
                     });
                 }
-                /////////// FROM BERNHARD (START)  
-                //Update available products   UPDATE products SET name = $1 WHERE pk_productid = $2;
+                //Update available products   
                 i = 0;
                 let base = [];
                 for (; i < byed.length; i++) {
@@ -378,7 +377,6 @@ class Orders {
                         reject(error.toString());
                     });
                 }
-                /////////// FROM BERNHARD (END)
             }
             else {
                 console.log("no ITEMS!! ");

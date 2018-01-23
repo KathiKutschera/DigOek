@@ -418,9 +418,8 @@ export class Orders {
 
 			 }
 			 
-			 
-			 	/////////// FROM BERNHARD (START)  
-		   //Update available products   UPDATE products SET name = $1 WHERE pk_productid = $2;
+			  
+		   //Update available products   
 			 i = 0;
 			let base = [];
 						
@@ -453,7 +452,7 @@ export class Orders {
 			  });
 			}
 		   
-			 /////////// FROM BERNHARD (END)
+		   
 		  }
 		  else {
 			  console.log ("no ITEMS!! ");
@@ -470,7 +469,6 @@ export class Orders {
         if (! req.hasOwnProperty ('auth')) {
 			return reject ("Not logged in");
 			}
-			
 			
 		// query status of order: order can only be deleted if status is not "delivered"
 			//TODO let sql = "DELETE FROM orders where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
