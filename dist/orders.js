@@ -350,8 +350,7 @@ class Orders {
                             reject(error.toString());
                         });
                     }
-                    /////////// FROM BERNHARD (START)  
-                    //Update available products   UPDATE products SET name = $1 WHERE pk_productid = $2;
+                    //Update available products   
                     i = 0;
                     let base = [];
                     for (; i < byed.length; i++) {
@@ -378,7 +377,6 @@ class Orders {
                             reject(error.toString());
                         });
                     }
-                    /////////// FROM BERNHARD (END)
                 }
                 else {
                     console.log("no ITEMS!! ");
@@ -395,9 +393,9 @@ class Orders {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            // query status of order: order can only be deleted if status is not "delivered"
+            // query status of order: order can only be deleted if delivery date is null
             //TODO let sql = "DELETE FROM orders where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
-            let sql = "DELETE FROM orders where pk_orderid = $1 RETURNING *";
+            let sql = "DELETE FROM orders where pk_orderid = $1 AND deliverydate IS NULL RETURNING *";
             let params = [req.params.id];
             this.pool
                 .query(sql, params)
@@ -406,7 +404,7 @@ class Orders {
                     resolve(res.rows);
                 }
                 else {
-                    reject("No such order");
+                    reject("No such order / delivery date already set");
                 }
             })
                 .catch(error => {
