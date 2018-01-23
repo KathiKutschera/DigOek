@@ -200,7 +200,17 @@ class Orders {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
-            let sql = "SELECT * FROM orders";
+            let fk_username = req.auth.user;
+            let sql;
+            if (fk_username == "admin") {
+                sql = "SELECT * FROM orders";
+                console.log("sql = " + sql);
+            }
+            else {
+                sql = "SELECT * FROM orders WHERE fk_username = '" + fk_username + "'";
+                console.log("sql = " + sql);
+            }
+            console.log("fk_username = " + fk_username);
             let params = [limit || this.defaultLimit, offset || 0];
             sql += "  LIMIT $1 OFFSET $2";
             this.pool
@@ -418,6 +428,52 @@ class Orders {
             if (!req.hasOwnProperty('auth')) {
                 return reject("Not logged in");
             }
+            /*
+                     // create query for update the orders table
+                      let sql2 = "UPDATE orders SET";
+                      let params2 = [];
+            
+                    let allFields = ["orderdate", "deliverydate", "paymentstate", "paymentmethod", "price"];
+                      let i = 0;
+            
+                      for(; i < allFields.length; i++){
+                        if(req.body.hasOwnProperty(allFields[i])){
+                          if(i != 0){
+                            sql2 += `, `;
+                          }
+                          sql2 += ` ${allFields[i]}`;
+                           sql2 += ` =  req.body[allFields[i]]`;
+                            //params2.push(req.body[allFields[i]]);
+                        }
+                      }
+                      
+                      sql += "WHERE pk_orderid = " + id;
+                              
+                      // check
+                      console.log(sql2);
+                      //insert into db
+                      this.pool
+                        .query (sql2)
+                        .then( res => {pk_orderid = res.rows[0].pk_orderid;
+                      
+            
+                //payment logic
+                      let priceDifference; // if negative, the user has a debit; if poitive, the user must be refund
+                      
+                      if(req.body.hasOwnProperty("price")){
+                          let sqlGetOldPrice = "SELECT price FROM orders WHERE orderid = " + id;
+                          this.pool
+                            .query (sqlGetOldPrice)
+                            .then( res => {let val = res.rows[0].price - req.body["price"];
+                                
+                                let sql3 = "UPDATE products SET amountavailable = " +
+                                val +
+                                " WHERE pk_productid = "+ boughtProduct +";";
+                            });
+                      
+                      }
+                    */
+            //// Bernhard:
             let sql = "UPDATE orders SET paymentstate = '"
                 + req.params.paymentstate + "', paymentmethod = '"
                 + req.params.paymentmethod + "'";
