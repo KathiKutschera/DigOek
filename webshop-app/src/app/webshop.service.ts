@@ -178,6 +178,18 @@ export class WebshopService {
   }
 
 
+  getCart() : Promise<types.Cart>{
+    return this.http.get(`${this.url}/rest/cart`, {
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+
   private handleError(error: any): Promise<any> {
     console.error('An error occurred', error);
     return Promise.reject(error.message || error);
