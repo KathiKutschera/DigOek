@@ -13,7 +13,7 @@ export class ShoppingcartComponent implements OnInit {
 
   cart : types.CartItems[];
 
-  constructor(private webshopService: WebshopService, 
+  constructor(private webshopService: WebshopService,
     private router: Router) { }
 
   ngOnInit() {
@@ -26,7 +26,7 @@ export class ShoppingcartComponent implements OnInit {
       getCart().then((data) => {
         console.log("data: " + JSON.stringify(data, null, 2));
         this.cart = data;
-        
+
         //go through all elements and find out their name
         this.webshopService.getProducts().then((data)=>{
           let prod:types.Product[] = data;
@@ -43,7 +43,7 @@ export class ShoppingcartComponent implements OnInit {
             this.cart[i].productName=name;
           }
         })
-        
+
 
       }).catch(err => {
         console.error(err);

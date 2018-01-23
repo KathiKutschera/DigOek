@@ -2,9 +2,9 @@
     <p>
         Der derzeitige Einkaufswagen
         <div *ngFor="let cartItem of cart; index as i">
-            <button type="button" name={{cartItem.pk_cartid}} 
-            class="list-group-item list-group-item-action" 
-            (click)="cartItem.showDetails = true">
+            <button type="button" name={{cartItem.pk_cartid}}
+            class="list-group-item list-group-item-action"
+            (click)="cartItem.showDetails = !cartItem.showDetails">
 
                 {{cartItem.productName}}
             </button>
@@ -22,11 +22,11 @@
                 <b>Menge: </b>
                 {{cartItem.amount}}
                 </p>
-    
-    
+
+
             </div>
-            
+
         </div>
-    
+
 
 </div>
