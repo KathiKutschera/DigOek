@@ -430,6 +430,8 @@ class Orders {
                 else {
                     console.log("no ITEMS!! ");
                 }
+                //	});
+                //   })
             })
                 .catch(error => {
                 console.error(sql2 + " with params " + JSON.stringify(params2) + ": " + error.toString());
