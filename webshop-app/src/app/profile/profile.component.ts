@@ -203,6 +203,27 @@ export class ProfileComponent implements OnInit {
         this.orders = data;
         console.log("this.orders[0].orderdate : " + moment().format(this.orders[0].orderdate));
         this.noOrders = false;
+
+        //go through all elements and find out their name
+        this.webshopService.getProducts().then((data)=>{
+          let prod:types.Product[] = data;
+          let i = 0;
+          for(;i < this.orders.length;i++){
+            let h = 0;
+            for(;h < this.orders[i].items.length;h++){
+              //Search for the product of this item
+              let a = 0;
+              let name:string;
+              for(;a < prod.length && name === undefined; a++){
+                if(prod[a].pk_productid==this.orders[i].items[h].fk_productid){
+                  name = prod[a].name;
+                }
+              }
+              this.orders[i].items[h].productName=name;
+          }
+          }
+        })
+
       } else {
         this.orders = undefined;
         this.noOrders = true;

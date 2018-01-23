@@ -138,9 +138,9 @@
 
         	<div *ngFor="let item of order.items">
             <!-- TODO: oderitems when get order is fixed.. -->
-            <p *ngIf="item.fk_productid">
+            <p *ngIf="item.productName">
               <b>Item bought: </b>
-              {{item.fk_productid}}
+              {{item.productName}}
             </p>
             <p>
               <b>Item amount: </b>
