@@ -55,6 +55,7 @@ export class AppComponent implements OnInit {
         this.username = data;
       } else {
         this.username = data;
+        this.router.navigate(['/home']);
       }
     }).catch(err => {
       console.error(err);
@@ -68,6 +69,7 @@ export class AppComponent implements OnInit {
   logout() {
     this.username = undefined;
     this.webshopService.configureUser(this.username, undefined);
+    this.router.navigate(['/home']);
   }
 
   register() : void{
