@@ -446,6 +446,7 @@ class Products {
                 }
                 params.push(req.params.id);
                 sql += ` WHERE pk_productid = $` + (j + 1) + ';';
+                console.log("ITISI" + sql);
                 this.pool
                     .query(sql, params)
                     .then(_ => resolve({ "pk_productid": req.params.id }))

@@ -277,248 +277,223 @@ export class Orders {
   public doPostOrders (req: Request, auth: Types.Auth, id: number) : Promise<Types.Id> {
 	  
 	    
-   return new Promise ((resolve, reject) => {
-      if (! req.hasOwnProperty ('auth')) {
-        return reject ("Not logged in");
-      }
-      let requiredFields = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+	return new Promise ((resolve, reject) => {
+		  if (! req.hasOwnProperty ('auth')) {
+			return reject ("Not logged in");
+		  }
+		  let requiredFields = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
 
-      for(let i = 0; i < requiredFields.length; i++){
-        if(! req.body.hasOwnProperty(requiredFields[i])){
-          reject(`Missing field: ${requiredFields[i]}` );
-          return;
-        }
-      }
-
-	  // create query for insert into orders table
-      let sql2 = "INSERT INTO orders(";
-      let params2 = [];
-
-      let allFieldsSql2 = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
-      let i = 0;
-
-      for(; i < allFieldsSql2.length; i++){
-        if(req.body.hasOwnProperty(allFieldsSql2[i])){
-          if(i != 0){
-            sql2 += `, `;
-          }
-          sql2 += ` ${allFieldsSql2[i]}`;
-            params2.push(req.body[allFieldsSql2[i]]);
-        }
-      }
-	  
-	 // let orderdate = req.body.orderdate; 
-
-      sql2 += `) VALUES (`;
-      for(let j = 0; j < i; j++){
-        if(j != 0){
-          sql2 += `, `;
-        }
-        sql2 += `$${j+1}`;
-
-      }
-	  	  
-	  sql2 += `) `;
-	  
-	  // check 
-	    console.log(sql2);
-      console.log(JSON.stringify(params2));
-	  
-	  //insert into db
-	  this.pool
-		.query (sql2, params2)
-        .catch ( error => {
-          console.error(sql2 + " with params "+JSON.stringify (params2) + ": " + error.toString());
-          reject (error.toString());
-        });
-	  
-	  // create query for insert into orderitems table
-	  
-	  let p = 0;
-	  let currentItem;
-	  
-	  let sql1 = "INSERT INTO orderitems(";
-      let params1 = [];
-	  let allFieldsSql1 = ["pk_fk_itemid", "price", "amount", "fk_productid"]
-	   
-	  let h = 0;
-	  let n = 0;
-
-    let byed = [];
-    let amount = [];
-
-	/////////// FROM BERNHARD (START)
-   /*    for(; h < allFieldsSql1.length; h++){
-        if(req.body.hasOwnProperty(allFieldsSql1[h])){
-		  if( allFieldsSql1[h] == "pk_orderid" ){
-			  console.log("TAG is " + allFieldsSql1[h] + " so im in if and h is " + h);
-			  n++;
-			  if(h != 0){
-        sql1 += `, `;
-        if(h == 4){
-          byed.push(req.body[allFieldsSql1[h]]);
-        }
-        else if(h == 3){
-          amount.push(req.body[allFieldsSql1[h]]);
-        }
+		  for(let i = 0; i < requiredFields.length; i++){
+			if(! req.body.hasOwnProperty(requiredFields[i])){
+			  reject(`Missing field: ${requiredFields[i]}` );
+			  return;
 			}
-			sql1 += `fk_pk_orderid`;
-            params1.push(req.body[allFieldsSql1[h]]);  
+		  }
 
-				console.log("pushed paramenter  " + req.body[allFieldsSql1[h]] +  "  into sql1");
+		  // create query for insert into orders table
+		  let sql2 = "INSERT INTO orders(";
+		  let params2 = [];
+
+		  let allFieldsSql2 = ["pk_orderid", "orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+		  let i = 0;
+
+		  for(; i < allFieldsSql2.length; i++){
+			if(req.body.hasOwnProperty(allFieldsSql2[i])){
+			  if(i != 0){
+				sql2 += `, `;
+			  }
+			  sql2 += ` ${allFieldsSql2[i]}`;
+				params2.push(req.body[allFieldsSql2[i]]);
+			}
 		  }
 		  
-		   if( allFieldsSql1[h] != "pk_orderid" ){
-          if(h != 0){
-            sql1 += `, `;
-          }
-          console.log("TAG is " + allFieldsSql1[h] + " and h is " + h);
-          sql1 += ` ${allFieldsSql1[h]}`;
-                params1.push(req.body[allFieldsSql1[h]]);  
-          n++;
-          }
-        }
-      } */
-		/////////// FROM BERNHARD (END)  
-	  
-	  //get item array and iterate through it
-	   if(req.body.hasOwnProperty("item")){
-	    let arrayOfItems = req.body["item"];
-		 for(; p < arrayOfItems.length; p++){
-			 
-			 // reset h, n, parameter and query so that a new query can be made for next item
-			  h=0;
-			  n=0;
-			 sql1 = "INSERT INTO orderitems(";
-			 params1 = [];
-			 
-			  
-			console.log ("ITEMS!! " + JSON.stringify(arrayOfItems[p], null, 2));
-			currentItem = arrayOfItems[p];
-			  
-			  
-			//  console.log("currentItem stelle " + p + " wert is " + currentItem[allFieldsSql1[p]] + "tag ist " + `${allFieldsSql1[p]}`);
-			
-			//add orderID as foreignkey
-			params1.push(req.body["pk_orderid"]);  
-			sql1 += `fk_pk_orderid, `;
-			n++;
-			 
-			 
-			  for(; h < allFieldsSql1.length; h++){
-				if(currentItem.hasOwnProperty(allFieldsSql1[h])){
-				 if( allFieldsSql1[h] == "fk_productid" ){
-						byed.push(currentItem[allFieldsSql1[h]]);
-						console.log ("pushed to byed " + currentItem[allFieldsSql1[h]]);
-					}
-					if(allFieldsSql1[h] == "amount"){
-						amount.push(currentItem[allFieldsSql1[h]]);
-						console.log ("pushed to amount " + currentItem[allFieldsSql1[h]]);
-					}
-					
-					if(h != 0){
-						sql1 += `, `;
-					}
-					console.log("TAG is " + allFieldsSql1[h] + " and h is " + h + "and value is " + currentItem[allFieldsSql1[h]]);
-					 sql1 += ` ${allFieldsSql1[h]}`;
-					params1.push(currentItem[allFieldsSql1[h]]);  
-					 n++;
-					 
-				}
-			  }
-			  
-			  //add $[nr] in VALUES()
-			  sql1 += `) VALUES (`;
-			  for(let j = 0; j < n; j++){
-				if(j != 0){
-				  sql1 += `, `;
-				}
-				sql1 += `$${j+1}`;
-			  }
-				  
-			  sql1 += `) `;
-			  
-			  // check current status of query sql1
-			    console.log(sql1);
-				console.log(JSON.stringify(params1));
-				
-			// make insert query on DB for the current item
-			   this.pool
-			  .query (sql1, params1)
-			  .catch (error => {
-				console.error (sql1 + " with params "+JSON.stringify (params1) + ": " + error.toString());
-				reject (error.toString());
-			  })
-			     .then (resolve ({"pk_username": req.body.fk_username}));			   
-		 }
-	  }
-	  else {
-		  console.log ("no ITEMS!! ");
-	  }
-	  
-	  
-		/////////// FROM BERNHARD (START)  
-	   //Update available products
-        i = 0;
-        let base = [];
+		 // let orderdate = req.body.orderdate; 
 
-        for(;i < byed.length; i++){
+		  sql2 += `) VALUES (`;
+		  for(let j = 0; j < i; j++){
+			if(j != 0){
+			  sql2 += `, `;
+			}
+			sql2 += `$${j+1}`;
 
-          let sql = "SELECT amountavailable FROM "
-          + "products WHERE " + 
-          "pk_productid = " +`${byed[i]}`+  ";";
-          this.pool
-          .query (sql)
-          .then (res => {
-            let val = res.rows[0].amountavailable - amount[i];
-
-            let sql3 = "UPDATE products SET amountavailable = " + 
-            `${val}` + 
-            " WHERE pk_productid="+`${byed[i]}`+";";
-            console.log(sql3);
+		  }
+			  
+		  sql2 += `) `;
 		  
-            this.pool.query (sql3)
-              .catch ( error => {
-                console.error(sql3 + ": " + error.toString());
-                reject (error.toString());
-              });
-          
-          })
-          .catch (error => {
-            console.error(sql + ": " + error.toString());
-            reject (error.toString());
-          });
-        }
-      
+		  // check 
+		  console.log(sql2);
+		  console.log(JSON.stringify(params2));
+		  
+		  //insert into db
+		  this.pool
+			.query (sql2, params2)
+			.catch ( error => {
+			  console.error(sql2 + " with params "+JSON.stringify (params2) + ": " + error.toString());
+			  reject (error.toString());
+			});
+		  
+		  // create query for insert into orderitems table
+		  
+		  let p = 0;
+		  let currentItem;
+		  
+		  let sql1 = "INSERT INTO orderitems(";
+		  let params1 = [];
+		  let allFieldsSql1 = ["pk_fk_itemid", "price", "amount", "fk_productid"]
+		   
+		  let h = 0;
+		  let n = 0;
+
+		  let byed = [];
+		  let amount = [];
+		  
+		  //get item array and iterate through it
+		   if(req.body.hasOwnProperty("item")){
+			let arrayOfItems = req.body["item"];
+			for(; p < arrayOfItems.length; p++){
+				 
+				 // reset h, n, parameter and query so that a new query can be made for next item
+				  h=0;
+				  n=0;
+				 sql1 = "INSERT INTO orderitems(";
+				 params1 = [];
+				 
 				  
-      });
+				console.log ("ITEMS!! " + JSON.stringify(arrayOfItems[p], null, 2));
+				currentItem = arrayOfItems[p];
+				  
+				  
+				//  console.log("currentItem stelle " + p + " wert is " + currentItem[allFieldsSql1[p]] + "tag ist " + `${allFieldsSql1[p]}`);
+				
+				//add orderID as foreignkey
+				params1.push(req.body["pk_orderid"]);  
+				sql1 += `fk_pk_orderid, `;
+				n++;
+				 
+				 
+				  for(; h < allFieldsSql1.length; h++){
+					if(currentItem.hasOwnProperty(allFieldsSql1[h])){
+					 if( allFieldsSql1[h] == "fk_productid" ){
+							byed.push(currentItem[allFieldsSql1[h]]);
+							console.log ("pushed to byed " + currentItem[allFieldsSql1[h]]);
+						}
+						if(allFieldsSql1[h] == "amount"){
+							amount.push(currentItem[allFieldsSql1[h]]);
+							console.log ("pushed to amount " + currentItem[allFieldsSql1[h]]);
+						}
+						
+						if(h != 0){
+							sql1 += `, `;
+						}
+						console.log("TAG is " + allFieldsSql1[h] + " and h is " + h + "and value is " + currentItem[allFieldsSql1[h]]);
+						 sql1 += ` ${allFieldsSql1[h]}`;
+						params1.push(currentItem[allFieldsSql1[h]]);  
+						 n++;
+						 
+					}
+				  }
+				  
+				  //add $[nr] in VALUES()
+				  sql1 += `) VALUES (`;
+				  for(let j = 0; j < n; j++){
+					if(j != 0){
+					  sql1 += `, `;
+					}
+					sql1 += `$${j+1}`;
+				  }
+					  
+				  sql1 += `) `;
+				  
+				  // check current status of query sql1
+				  console.log(sql1);
+				  console.log(JSON.stringify(params1));
+					
+				// make insert query on DB for the current item
+				   this.pool
+				  .query (sql1, params1)
+				  .catch (error => {
+					console.error (sql1 + " with params "+JSON.stringify (params1) + ": " + error.toString());
+					reject (error.toString());
+				  });	
+
+			 }
+			 
+			 
+			 	/////////// FROM BERNHARD (START)  
+		   //Update available products   UPDATE products SET name = $1 WHERE pk_productid = $2;
+			 i = 0;
+			let base = [];
+						
+			for(;i < byed.length; i++){
+				let boughtProduct = byed[i];
+				let boughtAmount = amount[i];
+			  let sql = "SELECT amountavailable FROM "
+			  + "products WHERE " + 
+			  "pk_productid = " + boughtProduct +  ";";
+			  this.pool
+			  .query (sql)
+			  .then (res => {
+					let val = res.rows[0].amountavailable - boughtAmount;
+					let sql3 = "UPDATE products SET amountavailable = " + 
+					val + 
+					" WHERE pk_productid = "+ boughtProduct +";";
+					console.log(sql3);
+				  
+					this.pool.query (sql3)
+						.then (resolve ({"pk_username": req.body.fk_username}))	
+					  .catch ( error => {
+						console.error(sql3 + ": " + error.toString());
+						reject (error.toString());
+					  });
+			  
+			  })
+			  .catch (error => {
+				console.error(sql + ": " + error.toString());
+				reject (error.toString());
+			  });
+			}
+		   
+			 /////////// FROM BERNHARD (END)
+		  }
+		  else {
+			  console.log ("no ITEMS!! ");
+		  }
+		  		  
+		});
 
     }
-			/////////// FROM BERNHARD (END)
+			
 
     
     public doDeleteOrders (req: Request) : Promise<Types.Count> {
       return new Promise ((resolve, reject) => {
         if (! req.hasOwnProperty ('auth')) {
-          return reject ("Not logged in");
-        }
-  
-        let sql = "DELETE FROM orders where pk_orderid = $1 RETURNING *";
-        let params: [number] = [req.params.id];
-        this.pool
-        .query (sql, params)
-        .then (res => {
-          if(res.rows.length == 1){
-            resolve (res.rows);
-          } else {
-              reject ("No such order");
-            }
-        })
-        .catch (error => {
-          console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
-          reject (error.toString());
-        });
-      });
+			return reject ("Not logged in");
+			}
+			
+			
+		// query status of order: order can only be deleted if status is not "delivered"
+			//TODO let sql = "DELETE FROM orders where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
+      
+		
+					let sql = "DELETE FROM orders where pk_orderid = $1 RETURNING *";
+					let params: [number] = [req.params.id];
+					this.pool
+					.query (sql, params)
+					.then (res => {
+						if(res.rows.length == 1){
+							resolve (res.rows);
+						} else {
+							reject ("No such order");
+						}
+					})
+					.catch (error => {
+					console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
+					reject (error.toString());
+					});
+			
+		});
+		
     }
 
     public doPutOrdersByID(req:Request, 
