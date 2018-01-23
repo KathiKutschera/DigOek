@@ -5,14 +5,15 @@
             <button type="button" name={{cartItem.pk_cartid}} 
             class="list-group-item list-group-item-action" 
             (click)="cartItem.showDetails = true">
-                ID: {{cartItem.pk_cartid}}
+
+                {{cartItem.productName}}
             </button>
            <div *ngIf="cartItem.showDetails">
                 <br/>
-                <p *ngIf="cartItem.productName">
+                <!--<p *ngIf="cartItem.productName">
                 <b>Item: </b>
                 {{cartItem.productName}}
-                </p>
+                </p>-->
                 <p>
                 <b>Preis: </b>
                 {{cartItem.price}}
