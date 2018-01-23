@@ -27,7 +27,6 @@ export class ShoppingcartComponent implements OnInit {
         console.log("data: " + JSON.stringify(data, null, 2));
         this.cart = data;
         
-        
       }).catch(err => {
         console.error(err);
         this.router.navigate(['/home']);
