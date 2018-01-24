@@ -251,8 +251,12 @@ export class WebshopService {
     .catch(this.handleError);
   }
 
-  postCartItem(p:types.CartItems):Promise<number>{
-    return this.http.post(`${this.url}/rest/cart`, p,{
+  postCartItem(amount:number, price:number, username:string, prodID):Promise<types.CartItems[]>{
+
+    let targ : string = '{"amount":' + amount + ', "price":' + price + ', "fk_pk_username":"' + username + '", "fk_pk_productid":'
+              +prodID + '}';
+    console.log("Posting: "+ targ);
+    return this.http.post(`${this.url}/rest/cart`, targ,{
       headers:new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
     .toPromise()

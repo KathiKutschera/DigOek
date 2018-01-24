@@ -33,15 +33,17 @@ export class HomeComponent implements OnInit {
 
      for(var i = 0; i < this.products.length; i++) {
       let amount2 = parseInt((<HTMLInputElement>document.getElementById(`${this.products[i].pk_productid}`)).value);
-       if (this.products[i].hasOwnProperty("amount")){
+      (<HTMLInputElement>document.getElementById(`${this.products[i].pk_productid}`)).value = '';
+      console.log("Wanted Product: " + this.products[i].pk_productid + ", Amount: " + amount2);
+      
+       if (!isNaN(amount2)){
          if (this.products[i].amountavailable < amount2){
            window.alert(`There is a negative amount of ${this.products[i].name}. Therefore, your order will not be processed.`);
            return;
          }
          if (this.products[i].amountavailable >= amount2) {
-           let targ :types.CartItems = {"pk_cartid":0,"amount":amount2, "price":this.products[i].price, "fk_pk_username":this.webshopService.getUsername(), "fk_pk_productid":
-              this.products[i].pk_productid};
-            this.webshopService.postCartItem(targ)
+          console.log("Gotten Product: " + this.products[i].pk_productid);
+            this.webshopService.postCartItem(amount2, this.products[i].price, this.webshopService.getUsername(), this.products[i].pk_productid)
             .catch(err => {
               console.error(err);
             });
