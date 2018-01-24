@@ -33,6 +33,13 @@ export class HomeComponent implements OnInit {
     console.log("ordered Amount: " + p.orderdAmount);
     console.log("available Amount: " + p.amountavailable);
 
+    let user = this.webshopService.getUsername();
+
+    if(!user){
+      window.alert(`Sorry, but you need to be logged in to order something.`);
+      return;
+    }
+
     if(isNaN(p.orderdAmount) || (p.orderdAmount < 0 )) {
       window.alert(`Sorry, but ${p.amountavailable} isn't a valid amount to order. Please fix that and try again.`);
       return;
