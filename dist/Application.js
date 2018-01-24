@@ -173,12 +173,18 @@ class Application {
             req.url = req.url.substr('/docs'.length);
             return docs_handler(req, res, next);
         });
-        // Redirect
-        this.app.get('/', function (req, res) {
-            //  to swagger docu
-            // res.redirect ('/docs/')
-            //  to GUI
-            res.redirect('/public/');
+        //   // Redirect
+        //   this.app.get ('/', function (req, res) {
+        //   //  to swagger docu
+        //   // res.redirect ('/docs/')
+        //   //  to GUI
+        //   res.redirect ('/public/')
+        // });
+        // Angular 5 Application needs to be directly under / beause of used router module
+        this.app.use('/', express.static(path.join(__dirname, '/../public/dist')));
+        // Redirect used routes to / -- in this way the routes does not make any sense for the user
+        this.app.get('*', function (req, res) {
+            res.redirect('/');
         });
     }
     ;
