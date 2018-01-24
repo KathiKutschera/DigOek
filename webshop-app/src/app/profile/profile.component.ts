@@ -351,6 +351,7 @@ export class ProfileComponent implements OnInit {
       return;
     }
     if(!this.newProduct.fk_groupid) {
+      // TODO: find category other & give options for group selection!
       this.newProduct.fk_groupid = 5;
     }
 
