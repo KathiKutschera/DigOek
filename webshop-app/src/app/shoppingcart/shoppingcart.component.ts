@@ -12,6 +12,7 @@ import { Router } from "@angular/router";
 export class ShoppingcartComponent implements OnInit {
 
   cart : types.CartItems[];
+  totalCosts:number;
   errorMessage : string = undefined;
   successMessage : string = undefined;
 
@@ -96,7 +97,17 @@ export class ShoppingcartComponent implements OnInit {
    * Converts all shoppingCartItems to orderItems and this shoppingCart to an order
    */
   process():void{
-    this.router.navigate(['/dodo']);
+    let order:types.Order = {"pk_orderid" : 0, "orderdate":(new Date())+ "", "price":this.totalCosts, "deliverydate":null, 
+      "paymentstate":null, "paymentmethod":null};
+    order.items = new Array(this.cart.length);
+   for(var i = 0; i < this.cart.length; i++){
+    order.items[i] = {"pk_fk_itemid":0, "price":this.cart[i].price, "amount":this.cart[i].amount, 
+      "fk_productid":this.cart[i].fk_pk_productid};
+    this.webshopService.deleteCartItem(this.cart[i]);
+   }
+
+   this.webshopService.postOrder(order);
+    //this.router.navigate(['/dodo']);
   }
 
 }

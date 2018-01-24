@@ -58,22 +58,7 @@ export class dodoComponent implements OnInit {
   }
 
  pay():void{
-    let order:types.Order;
-    order.orderdate = (new Date())+ "";
-    order.paymentmethod = this.payMethod;
-    order.paymentstate = "payed";
-    order.price = this.totalCosts;
-    
-   for(var i = 0; i < this.cart.length; i++){
-    order.items[i].amount = this.cart[i].amount;
-    order.items[i].fk_productid = this.cart[i].fk_pk_productid;
-    order.items[i].price = this.cart[i].price;
-    order.items[i].productName = this.cart[i].productName;
-    
-    this.webshopService.deleteCartItem(this.cart[i]);
-   }
-
-   this.webshopService.postOrder(order);
+   
    this.router.navigate(['/home']);
  }
 

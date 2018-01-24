@@ -336,7 +336,7 @@ export class WebshopService {
   // register user
   postOrder(order: types.Order) : Promise<types.Username> {
     // console.log("put User: " + JSON.stringify(user, null, 2));
-    return this.http.post(`${this.url}/rest/order`, order,{
+    return this.http.post(`${this.url}/rest/orders`, order,{
       headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
     .toPromise()
