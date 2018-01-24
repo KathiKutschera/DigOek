@@ -230,8 +230,8 @@ export class Orders {
       nickname : "putOrdersByID",
       produces : ["application/json"],
       parameters : [
-          swagger.params.path("id", "ID of the order", "long"),
-          swagger.params.body("body", 'Order as JSON string', "string")
+          swagger.params.path("id", "ID of the order", "long")
+          .body("body", 'Order as JSON string', "string")
         ],
       responseMessages : [
         { "code": 400, "message": 'invalid id' },
@@ -751,7 +751,8 @@ export class Orders {
           //insert into db
           this.pool
           .query (sql2, params2)
-                .then( res => {pk_orderid = res.rows[0].pk_orderid;
+                .then( 
+                  res => {pk_orderid = res.rows[0].pk_orderid;
             console.log("ORDERID "+pk_orderid);
             // create query for insert into orderitems table
       
@@ -759,7 +760,7 @@ export class Orders {
             let currentItem;
             
             //we have to take all orderItems
-            let item:types.OrderItem[] = req.body.items;
+            let item:Types.OrderItem[] = req.body.items;
 
             //now we have to find all orderItems that are included in the Database
             let sql1 = "SELECT * from orderitems;";
@@ -792,7 +793,7 @@ export class Orders {
                   if(res.rows[a].pk_fk_itemid == item[i].pk_fk_itemid && 
                     res.rows[a].fk_pk_orderid == item[i].fk_pk_orderid && 
                   item[i].amount > 0){
-                      change[item[i].pk_fk_itemid + ""] += res.rows[a].amount - item[i].amount;
+                      change[item[i].fk_productid + ""] += res.rows[a].amount - item[i].amount;
                       sql3 = "UPDATE orderitems SET price="+item[i].price + ", amount="+item[i].amount+", fk_productid="+item[i].fk_productid
                         + " WHERE pk_fk_itemid="+item[i].pk_fk_itemid + " AND fk_pk_orderid="+item[i].fk_pk_orderid+";";
                         //Pool it and give an error if we've been wrong
@@ -832,10 +833,10 @@ export class Orders {
               //Now do exactly that
               i = 0;
               for(;i < added.length; i++){
-                change[item[added[i]].pk_fk_itemid + ""] -= item[added[i]].amount;
+                change[item[added[i]].fk_productid + ""] -= item[added[i]].amount;
                 sql3 = "INSERT INTO orderitems (price, amount, fk_productid, pk_fk_itemid, fk_pk_orderid) "
                 "VALUES ("+item[added[i]].price + ", "+item[added[i]].amount+", "+item[added[i]].fk_productid
-                        + ", "+item[added[i]].pk_fk_itemid + ", "+item[added[i]].pk_fk_itemid+");";
+                        + ", "+item[added[i]].pk_fk_itemid + ", "+item[added[i]].fk_pk_orderid+");";
                   //Pool it and give an error if we've been wrong
                 this.pool.query(sql3).catch(
                   error => {
@@ -844,60 +845,48 @@ export class Orders {
               }
               i = 0;
               for(;i < del.length; i++){
-                change[res.rows[del[i]].pk_fk_itemid + ""] += res.rows[del[i]].amount;
-                sql3 = "DELETE FROM orderitems WHERE pk_fk_itemid="+res.rows[del[i]].pk_fk_itemid + " AND fk_pk_orderid="+res.rows[del[i]].pk_fk_itemid+";";
+                change[res.rows[del[i]].fk_productid + ""] += res.rows[del[i]].amount;
+                sql3 = "DELETE FROM orderitems WHERE pk_fk_itemid="+res.rows[del[i]].pk_fk_itemid + " AND fk_pk_orderid="+res.rows[del[i]].fk_pk_orderid+";";
                 this.pool.query(sql3).catch(
                   error => {
                   console.error (sql3 + ": " + error.toString());
                   reject (error.toString());});
               }
 
-
+              //Update available products
+              i = 0;
+              for(var x in change){
+                  
+                let sql = "SELECT amountavailable FROM products WHERE pk_productid = " + x +  ";";
+                this.pool
+                .query (sql)
+                .then (res2 => {
+                  let val = res2.rows[0].amountavailable - change[x];
+                  let sql3 = "UPDATE products SET amountavailable = " +
+                  val +
+                  " WHERE pk_productid = "+ x +";";
+                  console.log(sql3);
+        
+                  this.pool.query (sql3)
+                    .catch ( error => {
+                    console.error(sql3 + ": " + error.toString());
+                    reject (error.toString());
+                    });
+        
+                })
+                .catch (error => {
+                console.error(sql + ": " + error.toString());
+                reject (error.toString());
+                });
+              }
 
             }).catch(error => {
               console.error (sql1 + ": " + error.toString());
               reject (error.toString());});
-
             
-    
-            //Update available products
-            i = 0;
-            let base = [];
-      
-            /*for(;i < byed.length; i++){
-              let boughtProduct = byed[i];
-              let boughtAmount = amount[i];
-              let sql = "SELECT amountavailable FROM products WHERE pk_productid = " + boughtProduct +  ";";
-              this.pool
-              .query (sql)
-              .then (res => {
-                let val = res.rows[0].amountavailable - boughtAmount;
-                let sql3 = "UPDATE products SET amountavailable = " +
-                val +
-                " WHERE pk_productid = "+ boughtProduct +";";
-                console.log(sql3);
-      
-                this.pool.query (sql3)
-                  .then (resolve ({"pk_username": req.auth.user}))
-                  .catch ( error => {
-                  console.error(sql3 + ": " + error.toString());
-                  reject (error.toString());
-                  });
-      
-              })
-              .catch (error => {
-              console.error(sql + ": " + error.toString());
-              reject (error.toString());
-              });
-            }
-      
-      
-            }
-            else {
-              reject("Order hast no items");
-            }*/
-      
-
+              let res5:Types.Id;
+              res5.id = pk_orderid
+            resolve(res5);
         }).catch(error => {
           console.error (sql2);
           reject (error.toString());});
