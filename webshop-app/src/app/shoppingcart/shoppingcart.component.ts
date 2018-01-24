@@ -96,7 +96,7 @@ export class ShoppingcartComponent implements OnInit {
    * Converts all shoppingCartItems to orderItems and this shoppingCart to an order
    */
   process():void{
-    console.error("Not implemented");
+    this.router.navigate(['/dodo']);
   }
 
 }

@@ -1,0 +1,24 @@
+<div class="container-fluid" *ngIf="cart">
+    <h1>DoDo-Bank
+    </h1>
+
+    <form>>
+      <lable>
+        Costs:
+      </lable>
+      <p>{{totalCosts}}
+        </p>
+
+        <p>
+            <div class="form-group">
+            <label><b>Menge</b></label>
+            <input type="text" class="form-control" id="payment" [(ngModel)]="payMethod">
+            </div>
+
+
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="pay()">Pay
+            <span><i class="fa fa-trash-o" aria-hidden="true"></i></span>
+        </button>
+
+        </form>
+</div>
