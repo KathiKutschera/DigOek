@@ -118,10 +118,6 @@ export class Users {
       if (!req.params.username) {
         throw swagger.errors.invalid('username');
       }
-      // var id = parseInt(req.params.id);
-      // if (isNaN(id)) {
-      //   throw swagger.errors.invalid('id');
-      // }
       this.doGetUserByUserName (req)
       .then (result => res.send(JSON.stringify(result)))
       .catch (error => res.status(500).send ({
@@ -460,35 +456,6 @@ export class Users {
       });
     });
     }
-      // // get amount of not paid orders
-      // let sql1 = "SELECT COUNT(paymentstate) FROM orders WHERE orders.fk_username = $1 AND paymentstate = 'open'";
-      // let params1 : [string] = [req.params.username];
-      // this.pool
-      // .query (sql1, params1)
-      // .then (res => {
-      //   if(res.rows.length == 1){
-      //     console.log(res.rows[0].count);
-      //     if(res.rows[0].count == 0){
-      //       // delete user
-      //     } else {
-      //     reject ("There are open bills. User cannot be deleted when having open bills.")
-      //     return;
-      //   }
-      //   } else {
-      //       reject ("No such user");
-      //       return;
-      //     }
-      // })
-      // .catch (error => {
-      //   console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
-      //   reject (error.toString());
-      //   return;
-      // });
-      // DELETE FROM users where pk_username='paul.meier' AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) where users.pk_username = 'paul.meier' and paymentstate='open') = 0;
-
-      // DELETE FROM users where pk_username='hubers.restaurant' and (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) where users.pk_username = 'hubers.restaurant' and paymentstate='open') = 0;
-
-
 
 
   ///////////////////////////////////////////////

@@ -13,6 +13,8 @@ import * as serveIndex from 'serve-index';
 import * as glob from "glob";
 import * as basicAuth from 'express-basic-auth';
 
+import * as fs from "fs";
+
 // DB access pool
 import * as pg from 'pg';
 
@@ -192,9 +194,23 @@ export class Application {
   this.mountMisc();
   }
 
+  // private mountPublic(): void {
+  //   this.app.use('/public', express.static(path.join(__dirname, '/../public')));
+  //   this.app.use('/public', serveIndex (path.join(__dirname, '/../public'), {icons: true}));
+  // }
+
+
   private mountPublic(): void {
-    this.app.use('/public', express.static(path.join(__dirname, '/../public')));
-    this.app.use('/public', serveIndex (path.join(__dirname, '/../public'), {icons: true}));
+      this.app.use('/public', express.static(path.join(__dirname, '/../public')));
+      this.app.use('/public', serveIndex (path.join(__dirname, '/../public'), {icons: true}));
+
+      this.app.get('/public/images/*', function(req, res) {
+          fs.readFile(path.join(__dirname, '/../public/images/no_image.jpg'), function(err, page) {
+                  res.writeHead(200, {'Content-Type': 'image/jpg'});
+                  res.write(page);
+                  res.end();
+              })
+    })
   }
 
   private mountMisc (): void {

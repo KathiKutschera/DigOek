@@ -10,6 +10,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const serveIndex = require("serve-index");
 const basicAuth = require("express-basic-auth");
+const fs = require("fs");
 // DB access pool
 const pg = require("pg");
 // shared models
@@ -156,9 +157,20 @@ class Application {
         swagger.configure("/rest", "1.0.0");
         this.mountMisc();
     }
+    // private mountPublic(): void {
+    //   this.app.use('/public', express.static(path.join(__dirname, '/../public')));
+    //   this.app.use('/public', serveIndex (path.join(__dirname, '/../public'), {icons: true}));
+    // }
     mountPublic() {
         this.app.use('/public', express.static(path.join(__dirname, '/../public')));
         this.app.use('/public', serveIndex(path.join(__dirname, '/../public'), { icons: true }));
+        this.app.get('/public/images/*', function (req, res) {
+            fs.readFile(path.join(__dirname, '/../public/images/no_image.jpg'), function (err, page) {
+                res.writeHead(200, { 'Content-Type': 'image/jpg' });
+                res.write(page);
+                res.end();
+            });
+        });
     }
     mountMisc() {
         // Serve up swagger ui at /docs via static route

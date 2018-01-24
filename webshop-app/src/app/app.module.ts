@@ -30,17 +30,6 @@ const appRoutes: Routes = [
   { path: 'search', component: SearchComponent },
   { path: 'search/:term', component: SearchComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' }
-  // ,{ path: 'hero/:id',      component: HeroDetailComponent },
-  // {
-  //   path: 'heroes',
-  //   component: HeroListComponent,
-  //   data: { title: 'Heroes List' }
-  // },
-  // { path: '',
-  //   redirectTo: '/heroes',
-  //   pathMatch: 'full'
-  // },
-  // { path: '**', component: PageNotFoundComponent }
 ];
 
 @NgModule({
