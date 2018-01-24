@@ -169,7 +169,7 @@ export class WebshopService {
 
   // get Orders
   getOrdersByUsername(username : string) : Promise<types.Order[]> {
-    console.log("-----------------------------------------------");
+    // console.log("-----------------------------------------------");
     if(!username) {
       username = this.username;
     }
@@ -251,12 +251,27 @@ export class WebshopService {
     .catch(this.handleError);
   }
 
-  postCartItem(amount:number, price:number, username:string, prodID):Promise<types.CartItems[]>{
+  // postCartItem(amount:number, price:number, username:string, prodID):Promise<types.CartItems[]>{
+  //
+  //   let targ : string = '{"amount":' + amount + ', "price":' + price + ', "fk_pk_username":"' + username + '", "fk_pk_productid":'
+  //             +prodID + '}';
+  //   console.log("Posting: "+ targ);
+  //   return this.http.post(`${this.url}/rest/cart`, targ,{
+  //     headers:new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+  //   })
+  //   .toPromise()
+  //   .then((response)=>{
+  //     console.log(response);
+  //     return response
+  //   })
+  //   .catch(this.handleError);
+  // }
 
-    let targ : string = '{"amount":' + amount + ', "price":' + price + ', "fk_pk_username":"' + username + '", "fk_pk_productid":'
-              +prodID + '}';
-    console.log("Posting: "+ targ);
-    return this.http.post(`${this.url}/rest/cart`, targ,{
+
+  postCartItem(p : types.Product):Promise<types.CartItems>{
+    let item : types.CartItems = {amount : p.orderdAmount, price : p.price, fk_pk_username : this.username, fk_pk_productid : p.pk_productid};
+
+    return this.http.post(`${this.url}/rest/cart`, item,{
       headers:new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
     })
     .toPromise()
