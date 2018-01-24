@@ -83,11 +83,20 @@ export class ShoppingcartComponent implements OnInit {
       if(data){
         // seems like it worked
         this.successMessage = `Successfully removed this item.`;
+        //in case of reloading
+        //window.location.reload(false);
       }
     }).catch(err => {
       console.error(err);
       this.errorMessage = "Element not removed. This may be because of a server error.";
     });
+  }
+
+  /**
+   * Converts all shoppingCartItems to orderItems and this shoppingCart to an order
+   */
+  process():void{
+    console.error("Not implemented");
   }
 
 }

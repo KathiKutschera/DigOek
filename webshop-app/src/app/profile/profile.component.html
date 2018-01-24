@@ -124,7 +124,7 @@
             <span class="badge badge-success" *ngIf="order.paymentstate == 'payed'"> paid</span>
           </span>
         </button>
-        <div *ngIf="order.showDetails">
+        <form *ngIf="order.showDetails">
           <br/>
           <p>
             <b>OrderID: </b>
@@ -153,17 +153,39 @@
               <b>Item bought: </b>
               {{item.productName}}
             </p>
-            <p>
+            <p *ngIf="order.deliverydate || order.paymentmethod == 'payed'">
               <b>Item amount: </b>
               {{item.amount}}
             </p>
+            <p *ngIf="!order.deliverydate && order.paymentmethod != 'payed'">
+                <b>Item amount: </b>
+                {{item.amount}}
+              </p>
+
+            <p >
+              <div class="form-group" *ngIf="!order.deliverydate && order.paymentmethod != 'payed'">
+                  <label><b>Item amount</b></label>
+                  <input type="text" class="form-control" name="amount" [(ngModel)]="item.amount">
+              </div>
+            
+
             <p>
               <b>Item price: </b>
               {{item.price}}
             </p>
+
+
           </div>
 
-        </div>
+          <div *ngIf="!order.deliverydate && order.paymentmethod != 'payed'">
+              <button type="button" class="btn btn-lg btn-block btn-success" (click)="saveOrderChanges(i)">Save Changes
+                  <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
+                </button>
+                <button type="button" class="btn btn-lg btn-block btn-danger" (click)="deleteOrder(i)">Delete Item
+                  <span><i class="fa fa-user-times" aria-hidden="true"></i></span>
+                </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

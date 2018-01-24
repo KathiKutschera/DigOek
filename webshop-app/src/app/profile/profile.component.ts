@@ -370,6 +370,42 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  saveOrderChanges(p : number) : void {
+    this.webshopService.putOrder(this.orders[p]).then((data) => {
+      if(data){
+        // seems like it worked
+        this.successMessage = "Successfully updated the product."
+        // this.user = undefined;
+        return;
+      } else {
+        // should not happen...
+        this.errorMessage = "We are sorry, but an error occured. Please try again later.";
+      }
+    }).catch(err => {
+      console.error(err);
+      this.errorMessageEdit = "";
+      this.errorMessageEdit.concat("We are sorry, but an error occurred: ", err);
 
+    });
+  }
+
+  deleteOrder(p : types.Product) : void {
+    /*this.webshopService.deleteProduct(p).then((data) => {
+      if(data){
+        // seems like it worked
+        p.successMessage = "Successfully deleted the product."
+        // this.user = undefined;
+        return;
+      } else {
+        // should not happen...
+        p.errorMessage = "We are sorry, but an error occured. Please try again later.";
+      }
+    }).catch(err => {
+      console.error(err);
+      this.errorMessageEdit = "";
+      this.errorMessageEdit.concat("We are sorry, but an error occurred: ", err);
+
+    });*/
+  }
 
 }

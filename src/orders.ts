@@ -230,7 +230,8 @@ export class Orders {
       nickname : "putOrdersByID",
       produces : ["application/json"],
       parameters : [
-          swagger.params.path("id", "ID of the order", "long")
+          swagger.params.path("id", "ID of the order", "long"),
+          swagger.params.body("body", 'Order as JSON string', "string")
         ],
       responseMessages : [
         { "code": 400, "message": 'invalid id' },
@@ -709,82 +710,199 @@ export class Orders {
 
     }
 
-    public doPutOrdersByID(req:Request,
-      auth:Types.Auth, id:number){
-        return new Promise ((resolve, reject) => {
+    public doPutOrdersByID (req: Request, auth: Types.Auth, id: number) : Promise<Types.Id> {
+      return new Promise ((resolve, reject) => {
           if (! req.hasOwnProperty ('auth')) {
-            return reject ("Not logged in");
+          return reject ("Not logged in");
           }
-
-/*
-		 // create query for update the orders table
-		  let sql2 = "UPDATE orders SET";
-		  let params2 = [];
-
-		let allFields = ["orderdate", "deliverydate", "paymentstate", "paymentmethod", "price"];
-		  let i = 0;
-
-		  for(; i < allFields.length; i++){
-			if(req.body.hasOwnProperty(allFields[i])){
-			  if(i != 0){
-				sql2 += `, `;
-			  }
-			  sql2 += ` ${allFields[i]}`;
-			   sql2 += ` =  req.body[allFields[i]]`;
-				//params2.push(req.body[allFields[i]]);
-			}
-		  }
-
-		  sql += "WHERE pk_orderid = " + id;
-
-		  // check
-		  console.log(sql2);
-		  //insert into db
-		  this.pool
-			.query (sql2)
-            .then( res => {pk_orderid = res.rows[0].pk_orderid;
-
-
-	//payment logic
-		  let priceDifference; // if negative, the user has a debit; if poitive, the user must be refund
-
-		  if(req.body.hasOwnProperty("price")){
-			  let sqlGetOldPrice = "SELECT price FROM orders WHERE orderid = " + id;
-			  this.pool
-				.query (sqlGetOldPrice)
-				.then( res => {let val = res.rows[0].price - req.body["price"];
-
-					let sql3 = "UPDATE products SET amountavailable = " +
-					val +
-					" WHERE pk_productid = "+ boughtProduct +";";
-				});
-
-		  }
-		*/
-
-		  //// Bernhard:
-
-            let sql = "UPDATE orders SET paymentstate = '"
-          + req.params.paymentstate + "', paymentmethod = '"
-          + req.params.paymentmethod + "'";
-
-          sql += "WHERE pk_orderid = " + id;
-
-          this.pool
-          .query (sql)
-          .then (res => {
-            if(res.rows.length == 1){
-              resolve (res.rows);
-            } else {
-                reject ("No such order");
+          let requiredFields = ["orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+    
+          for(let i = 0; i < requiredFields.length; i++){
+            if(! req.body.hasOwnProperty(requiredFields[i])){
+              reject(`Missing field: ${requiredFields[i]}` );
+              return;
+            }
+          }
+    
+          // create query for update into orders table
+          let sql2 = "UPDATE orders SET ";
+          let params2 = [];
+    
+          let allFieldsSql2 = ["orderdate", "deliverydate", "paymentstate", "paymentmethod", "price", "fk_username"];
+          let i = 0;
+    
+          for(; i < allFieldsSql2.length; i++){
+            if(req.body.hasOwnProperty(allFieldsSql2[i])){
+              sql2 += ` ${allFieldsSql2[i]}` + "="+ `$${i+1}`;
+              params2.push(req.body[allFieldsSql2[i]]);
+              if(i < allFieldsSql2.length - 1){
+                sql2 +=", ";
               }
-          })
-          .catch (error => {
-            console.error(sql + ": " + error.toString());
-            reject (error.toString());
-          })
-          .then (resolve (id));
-        });
+            }
+          }
+    
+    
+          sql2 += `WHERE pk_orderid=`+id+` RETURNING pk_orderid`;
+              let pk_orderid = 0;
+    
+          // check
+          console.log(sql2);
+          console.log(JSON.stringify(params2));
+          //insert into db
+          this.pool
+          .query (sql2, params2)
+                .then( res => {pk_orderid = res.rows[0].pk_orderid;
+            console.log("ORDERID "+pk_orderid);
+            // create query for insert into orderitems table
+      
+            let p = 0;
+            let currentItem;
+            
+            //we have to take all orderItems
+            let item:types.OrderItem[] = req.body.items;
+
+            //now we have to find all orderItems that are included in the Database
+            let sql1 = "SELECT * from orderitems;";
+            
+
+            //Execute it and build up the db
+            this.pool.query(sql1).then(res => {
+              //Array of inserted rows
+              let added=[];
+              //Array of deleted rows
+              let del = [];
+              //Updates are done right in the computation. But they are needed to define the deleted ones.
+              let updated = [];
+              
+              let i = 0;
+              let a = 0;
+              let found = false;
+              let sql3:string;
+              //The change in the available items
+              let change:any;
+
+              for(;i < item.length; i++){
+                if(item[i].amount < 0){
+                  console.error ("Item " + (i + 1) + " has less than 0 units.");
+                  reject ("Item " + (i + 1) + " has less than zero units.");
+                }
+                a = 0;
+                found = false;
+                for(; a < res.rows.length && !found; a++){
+                  if(res.rows[a].pk_fk_itemid == item[i].pk_fk_itemid && 
+                    res.rows[a].fk_pk_orderid == item[i].fk_pk_orderid && 
+                  item[i].amount > 0){
+                      change[item[i].pk_fk_itemid + ""] += res.rows[a].amount - item[i].amount;
+                      sql3 = "UPDATE orderitems SET price="+item[i].price + ", amount="+item[i].amount+", fk_productid="+item[i].fk_productid
+                        + " WHERE pk_fk_itemid="+item[i].pk_fk_itemid + " AND fk_pk_orderid="+item[i].fk_pk_orderid+";";
+                        //Pool it and give an error if we've been wrong
+                      this.pool.query(sql3).catch(
+                        error => {
+                        console.error (sql3 + ": " + error.toString());
+                        reject (error.toString());});
+                      updated.push(a);
+                      found = true;
+                    }
+                    else if(res.rows[a].pk_fk_itemid == item[i].pk_fk_itemid && 
+                      res.rows[a].fk_pk_orderid == item[i].fk_pk_orderid && 
+                      item[i].amount == 0){
+                      del.push(a);
+                      found = true;
+                    }
+                }
+                if(!found){
+                  //This one has to be added
+                  added.push(i);
+                }
+              }
+
+              i = 0;
+              for(;i < res.rows.length; i++){
+                a = updated.indexOf(i);
+                if(a >= 0 && a < updated.length){
+                  //do nothing
+                }
+                
+                else{
+                  del.push(i);
+                }
+              }
+
+
+              //Now do exactly that
+              i = 0;
+              for(;i < added.length; i++){
+                change[item[added[i]].pk_fk_itemid + ""] -= item[added[i]].amount;
+                sql3 = "INSERT INTO orderitems (price, amount, fk_productid, pk_fk_itemid, fk_pk_orderid) "
+                "VALUES ("+item[added[i]].price + ", "+item[added[i]].amount+", "+item[added[i]].fk_productid
+                        + ", "+item[added[i]].pk_fk_itemid + ", "+item[added[i]].pk_fk_itemid+");";
+                  //Pool it and give an error if we've been wrong
+                this.pool.query(sql3).catch(
+                  error => {
+                  console.error (sql3 + ": " + error.toString());
+                  reject (error.toString());});
+              }
+              i = 0;
+              for(;i < del.length; i++){
+                change[res.rows[del[i]].pk_fk_itemid + ""] += res.rows[del[i]].amount;
+                sql3 = "DELETE FROM orderitems WHERE pk_fk_itemid="+res.rows[del[i]].pk_fk_itemid + " AND fk_pk_orderid="+res.rows[del[i]].pk_fk_itemid+";";
+                this.pool.query(sql3).catch(
+                  error => {
+                  console.error (sql3 + ": " + error.toString());
+                  reject (error.toString());});
+              }
+
+
+
+            }).catch(error => {
+              console.error (sql1 + ": " + error.toString());
+              reject (error.toString());});
+
+            
+    
+            //Update available products
+            i = 0;
+            let base = [];
+      
+            /*for(;i < byed.length; i++){
+              let boughtProduct = byed[i];
+              let boughtAmount = amount[i];
+              let sql = "SELECT amountavailable FROM products WHERE pk_productid = " + boughtProduct +  ";";
+              this.pool
+              .query (sql)
+              .then (res => {
+                let val = res.rows[0].amountavailable - boughtAmount;
+                let sql3 = "UPDATE products SET amountavailable = " +
+                val +
+                " WHERE pk_productid = "+ boughtProduct +";";
+                console.log(sql3);
+      
+                this.pool.query (sql3)
+                  .then (resolve ({"pk_username": req.auth.user}))
+                  .catch ( error => {
+                  console.error(sql3 + ": " + error.toString());
+                  reject (error.toString());
+                  });
+      
+              })
+              .catch (error => {
+              console.error(sql + ": " + error.toString());
+              reject (error.toString());
+              });
+            }
+      
+      
+            }
+            else {
+              reject("Order hast no items");
+            }*/
+      
+
+        }).catch(error => {
+          console.error (sql2);
+          reject (error.toString());});
+        })
       }
+    
 
   }

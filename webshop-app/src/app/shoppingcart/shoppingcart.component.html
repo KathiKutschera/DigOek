@@ -14,7 +14,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        
+
         <div *ngFor="let cartItem of cart; index as i">
             <button type="button" name={{cartItem.pk_cartid}}
             class="list-group-item list-group-item-action"
@@ -49,5 +49,10 @@
 
         </div>
 
+        <form *ngIf="cart.length > 0">
+                <button type="button" class="btn btn-lg btn-block btn-success" (click)="process()">Bestellen
+                        <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
+                      </button>
+        </form>
 
 </div>

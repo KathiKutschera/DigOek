@@ -50,11 +50,11 @@ export interface Order {
 }
 
 export interface OrderItem {
-  pk_fk_itemID: number,
+  pk_fk_itemid: number,
   price: number,
   amount: number,
-  fk_pk_orderID? : number,
-  fk_productID? : number
+  fk_pk_orderid? : number,
+  fk_productid? : number
 }
 
 export interface Productgroup {
