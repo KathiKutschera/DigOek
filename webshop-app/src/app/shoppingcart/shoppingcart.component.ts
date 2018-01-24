@@ -29,7 +29,7 @@ export class ShoppingcartComponent implements OnInit {
       getCart().then((data) => {
         console.log("data: " + JSON.stringify(data, null, 2));
         this.cart = data;
-
+        this.totalCosts = 0;
         //go through all elements and find out their name
         this.webshopService.getProducts().then((data)=>{
           let prod:types.Product[] = data;
@@ -44,6 +44,7 @@ export class ShoppingcartComponent implements OnInit {
               }
             }
             this.cart[i].productName=name;
+            this.totalCosts += this.cart[i].amount * this.cart[i].price;
           }
         })
 
@@ -97,7 +98,8 @@ export class ShoppingcartComponent implements OnInit {
    * Converts all shoppingCartItems to orderItems and this shoppingCart to an order
    */
   process():void{
-    let order:types.Order = {"pk_orderid" : 0, "orderdate":(new Date())+ "", "price":this.totalCosts, "deliverydate":null, 
+    console.log(this.totalCosts);
+    let order:types.Order = {"pk_orderid" : 0, "orderdate":(new Date())+ "", "price" : this.totalCosts, "deliverydate" : null, 
       "paymentstate":null, "paymentmethod":null};
     order.items = new Array(this.cart.length);
    for(var i = 0; i < this.cart.length; i++){
