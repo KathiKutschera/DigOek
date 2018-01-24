@@ -60,6 +60,7 @@ export interface OrderItem {
   amount: number,
   fk_pk_orderid? : number,
   fk_productid? : number,
+  showDetails? : boolean,
   //Additional Information for better presentation
   productName?:string
 }

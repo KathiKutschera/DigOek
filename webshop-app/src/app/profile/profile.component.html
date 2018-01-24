@@ -7,16 +7,19 @@
   <!-- show which tab is active is not working -->
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a class="nav-link active" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showUserManagement = false; showProductManagement = false; showProfileDetails = true">Profile Details</a>
+      <a class="nav-link active" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showUserManagement = false; showProductManagement = false; showOrderManagement = false; showProfileDetails = true">Profile Details</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-toggle="tab" role="tab" (click)="showProfileDetails = false; showUserManagement = false; showProductManagement = false; showPrevOrders = true;">Previous Orders</a>
+      <a class="nav-link" data-toggle="tab" role="tab" (click)="showProfileDetails = false; showUserManagement = false; showProductManagement = false; showOrderManagement = false; showPrevOrders = true;">Previous Orders</a>
     </li>
     <li class="nav-item" *ngIf="isAdmin">
-      <a class="nav-link" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showProfileDetails = false; showProductManagement = false; showUserManagement = true;">User Management</a>
+      <a class="nav-link" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showProfileDetails = false; showProductManagement = false; showOrderManagement = false; showUserManagement = true;">User Management</a>
     </li>
     <li class="nav-item" *ngIf="isAdmin">
-      <a class="nav-link" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showProfileDetails = false; showUserManagement = false; showProductManagement = true">Product Management</a>
+      <a class="nav-link" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showProfileDetails = false; showUserManagement = false; showOrderManagement = false; showProductManagement = true">Product Management</a>
+    </li>
+    <li class="nav-item" *ngIf="isAdmin">
+      <a class="nav-link" data-toggle="tab" role="tab" (click)="showPrevOrders = false; showProfileDetails = false; showUserManagement = false; showProductManagement = false; showOrderManagement = true">Order Management</a>
     </li>
 
     <!-- <li class="nav-item">
@@ -108,10 +111,18 @@
   <div *ngIf="showPrevOrders">
     <h4> Your orders: </h4>
     <p>&nbsp;</p>
+    <h5 *ngIf="noOrders">
+      We didn't find any previous orders of you.
+    </h5>
     <div class="list-group">
       <div *ngFor="let order of orders; index as i">
-        <button type="button" name={{order.pk_orderid}} class="list-group-item list-group-item-action" (click)="order.showDetails = !order.showDetails">
-          {{formatDate(order.orderdate)}}
+        <button type="button" name={{order.pk_orderid}} class="list-group-item list-group-item-action justify-content-between" (click)="order.showDetails = !order.showDetails">
+          <h5>{{formatDate(order.orderdate)}}</h5>
+          <span>
+            <span class="badge badge-default"> {{order.items.length}} Items ordered</span>
+            <span class="badge badge-danger" *ngIf="order.paymentstate == 'open'"> not paid</span>
+            <span class="badge badge-success" *ngIf="order.paymentstate == 'payed'"> paid</span>
+          </span>
         </button>
         <div *ngIf="order.showDetails">
           <br/>
@@ -157,14 +168,12 @@
     </div>
   </div>
 
-  <h5 *ngIf="showPrevOrders && noOrders">
-    "We didn't find any previous orders of you."
-  </h5>
+
 
 
 
   <div *ngIf="showUserManagement">
-    <p>&nbsp;</p>
+    <!-- <p>&nbsp;</p> -->
     <h4> All Users: </h4>
     <p>&nbsp;</p>
     <div class="list-group">
@@ -172,7 +181,7 @@
         <button type="button" name={{u.pk_username}} class="list-group-item list-group-item-action" (click)="u.showDetails = !u.showDetails">
           {{u.pk_username}}
         </button>
-        <br/>
+        <!-- <br/> -->
         <div *ngIf="u.showDetails">
           <p><b>Name: </b> {{u.name}}</p>
           <p><b>Surname: </b> {{u.surname}}</p>
@@ -261,14 +270,13 @@
       <button type="button" class="btn btn-sm btn-outline-success" (click)="addNewProduct()">Add New Product
         <span><i class="fa fa-plus" aria-hidden="true"></i></span>
       </button>
-      <button type="button" class="btn btn-sm btn-outline-danger" >Cancel
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="showAddProduct = false">Cancel
         <span><i class="fa fa-user-times" aria-hidden="true"></i></span>
       </button>
     </form>
     <br/>
 
 
-    <!-- TODO: addProduct(p) -->
     <div class="list-group">
       <div *ngFor="let p of products; index as i">
         <br/>
@@ -314,5 +322,75 @@
         </div>
     </div>
   </div>
+</div>
 
+  <div *ngIf="showOrderManagement">
+    <h4> All Orders: </h4>
+    <br/>
+    <h5 *ngIf="noAllOrders">
+      We didn't find any previous orders.
+    </h5>
+    <div class="list-group">
+      <div *ngFor="let o of allOrders; index as i">
+        <button type="button" name={{o.pk_orderid}} class="list-group-item list-group-item-action justify-content-between" (click)="o.showDetails = !o.showDetails">
+          <h5>{{formatDate(o.orderdate)}}</h5>
+          <span>
+            <span class="badge badge-default"> {{o.items.length}} Items ordered</span>
+            <span class="badge badge-danger" *ngIf="o.paymentstate == 'open'"> not paid</span>
+            <span class="badge badge-success" *ngIf="o.paymentstate == 'payed'"> paid</span>
+          </span>
+        </button>
+        <div *ngIf="o.showDetails">
+          <br/>
+          <p>
+            <b>OrderID: </b>
+            {{o.pk_orderid}}
+          </p>
+          <p *ngIf="o.deliverydate">
+            <b>Delivery date: </b>
+            {{o.deliverydate}}
+          </p>
+          <p>
+            <b>Payment Status: </b>
+            {{o.paymentstate}}
+          </p>
+          <p>
+            <b>Paymentmethod: </b>
+            {{o.paymentmethod}}
+          </p>
+          <p>
+            <b>Overall Price: </b>
+            {{o.price}}
+          </p>
+
+          <div class="list-group">
+            <div *ngFor="let oi of o.items; index as j">
+              <button type="button btn-sm" name={{oi.productName}} class="list-group-item list-group-item-action justify-content-between" (click)="oi.showDetails = !oi.showDetails">
+                {{oi.productName}}
+                <span>
+                  <span class="badge badge-default"> {{oi.amount}} pieces</span>
+                </span>
+              </button>
+              <div *ngIf="oi.showDetails">
+                <br/>
+                <p *ngIf="oi.productName">
+                  <b>Product: </b>
+                  {{oi.productName}}
+                </p>
+                <p>
+                  <b>Ordered Amount: </b>
+                  {{oi.amount}}
+                </p>
+                <p>
+                  <b>Item price: </b>
+                  {{oi.price}}
+                </p>
+              </div>
+          </div>
+        </div>
+
+        <br/>
+      </div>
+    </div>
+  </div>
 </div>

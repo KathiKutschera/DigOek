@@ -151,7 +151,7 @@ class Orders {
                 nickname: "PostOrders",
                 produces: ["application/json"],
                 parameters: [
-                    //    swagger.params.path ("username", "UserName of User", "string"), 
+                    //    swagger.params.path ("username", "UserName of User", "string"),
                     swagger.params.body("body", 'Order as JSON string', "string")
                 ],
                 responseMessages: [
@@ -292,6 +292,9 @@ class Orders {
                     }
                     resolve(jsonArray);
                 }
+                else {
+                    reject("No orders found.");
+                }
                 //resolve (res.rows);
             })
                 .catch(error => {
@@ -385,6 +388,9 @@ class Orders {
                     }
                     resolve(jsonArray);
                 }
+                else {
+                    reject("No orders found for that user");
+                }
                 //resolve (res.rows);
             })
                 .catch(error => {
@@ -419,7 +425,7 @@ class Orders {
                     params2.push(req.body[allFieldsSql2[i]]);
                 }
             }
-            // let orderdate = req.body.orderdate; 
+            // let orderdate = req.body.orderdate;
             sql2 += `, fk_username) VALUES (DEFAULT, `;
             params2.push(req.auth.user);
             for (let j = 0; j < i; j++) {
@@ -430,7 +436,7 @@ class Orders {
             }
             sql2 += `) RETURNING pk_orderid`;
             let pk_orderid = 0;
-            // check 
+            // check
             console.log(sql2);
             console.log(JSON.stringify(params2));
             //insert into db
@@ -506,7 +512,7 @@ class Orders {
                             reject(error.toString());
                         });
                     }
-                    //Update available products   
+                    //Update available products
                     i = 0;
                     let base = [];
                     for (; i < byed.length; i++) {
@@ -535,10 +541,8 @@ class Orders {
                     }
                 }
                 else {
-                    console.log("no ITEMS!! ");
+                    reject("Order hast no items");
                 }
-                //	});
-                //   })
             })
                 .catch(error => {
                 console.error(sql2 + " with params " + JSON.stringify(params2) + ": " + error.toString());
@@ -553,16 +557,16 @@ class Orders {
             }
             // query status of order: order can only be deleted if delivery date is null
             //TODO let sql = "DELETE FROM orders where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
-            //oben beschriebene Lösung ignoriert 
-            //bereits vom availableAmount abgezogene Güter, daher: 
+            //oben beschriebene Lösung ignoriert
+            //bereits vom availableAmount abgezogene Güter, daher:
             let sql = "DELETE FROM orders where pk_orderid = $1 AND deliverydate IS NULL RETURNING *";
             let params = [req.params.id];
             this.pool
                 .query(sql, params)
                 .then(res => {
                 if (res.rows.length == 1) {
-                    //Dieser Wert wurde gelöscht --> 
-                    //Suchen aller dazugehörigen OrderItems, 
+                    //Dieser Wert wurde gelöscht -->
+                    //Suchen aller dazugehörigen OrderItems,
                     //hinzufügen d. Produktanzahl
                     //und löschen d. Items
                     let sql2 = "SELECT fk_productid, amount FROM "
@@ -627,31 +631,31 @@ class Orders {
                             //params2.push(req.body[allFields[i]]);
                         }
                       }
-                      
+            
                       sql += "WHERE pk_orderid = " + id;
-                              
+            
                       // check
                       console.log(sql2);
                       //insert into db
                       this.pool
                         .query (sql2)
                         .then( res => {pk_orderid = res.rows[0].pk_orderid;
-                      
+            
             
                 //payment logic
                       let priceDifference; // if negative, the user has a debit; if poitive, the user must be refund
-                      
+            
                       if(req.body.hasOwnProperty("price")){
                           let sqlGetOldPrice = "SELECT price FROM orders WHERE orderid = " + id;
                           this.pool
                             .query (sqlGetOldPrice)
                             .then( res => {let val = res.rows[0].price - req.body["price"];
-                                
+            
                                 let sql3 = "UPDATE products SET amountavailable = " +
                                 val +
                                 " WHERE pk_productid = "+ boughtProduct +";";
                             });
-                      
+            
                       }
                     */
             //// Bernhard:

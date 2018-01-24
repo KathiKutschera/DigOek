@@ -16,6 +16,9 @@ export class ProfileComponent implements OnInit {
   user : types.User;
   isAdmin : boolean = false;
   orders : types.Order[] = [];
+
+
+  allOrders : types.Order[] = [];
   users : types.User[] = [];
   products : types.Product[] = [];
 
@@ -24,6 +27,7 @@ export class ProfileComponent implements OnInit {
   showPrevOrders : boolean = false;
   showProfileDetails : boolean = true;
   showUserManagement : boolean  = false;
+  showOrderManagement : boolean = false;
 
   newPassword : string = undefined;
   newPasswordRepeat : string = undefined;
@@ -35,6 +39,7 @@ export class ProfileComponent implements OnInit {
   successMessageEdit : string = undefined;
 
   noOrders : boolean = false;
+  noAllOrders : boolean = false;
 
   showAddProduct : boolean = false;
 
@@ -48,11 +53,12 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
     this.getUserByUsername();
-    this.getOrders();
+    this.getOrdersByUsername();
     this.isAdmin = this.webshopService.getUserIsAdmin();
     if(this.isAdmin){
       this.getUsers();
       this.getProducts();
+      this.getOrders();
     }
   }
 
@@ -195,9 +201,9 @@ export class ProfileComponent implements OnInit {
   }
 
 
-  getOrders(): void {
-    this.webshopService.getOrders().then((data) => {
-      console.log("data: " + JSON.stringify(data, null, 2));
+  getOrdersByUsername(): void {
+    this.webshopService.getOrdersByUsername(this.webshopService.getUsername()).then((data) => {
+      console.log("ORDERS OF USER: " + JSON.stringify(data, null, 2));
       if(data){
         // seems like it worked
         this.orders = data;
@@ -230,8 +236,53 @@ export class ProfileComponent implements OnInit {
       }
     }).catch(err => {
       console.error(err);
+      this.orders = undefined;
+      this.noOrders = true;
     });
   }
+
+  getOrders(): void {
+    this.webshopService.getOrders().then((data) => {
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data){
+        // seems like it worked
+        this.allOrders = data;
+        console.log("this.orders[0].orderdate : " + moment().format(this.allOrders[0].orderdate));
+        this.noAllOrders = false;
+
+        //go through all elements and find out their name
+        this.webshopService.getProducts().then((data)=>{
+          let prod : types.Product[] = data;
+          let i = 0;
+          for(; i < this.allOrders.length; i++){
+            let h = 0;
+            for(; h < this.allOrders[i].items.length; h++){
+              //Search for the product of this item
+              let a = 0;
+              let name : string;
+              for(;a < prod.length && name === undefined; a++){
+                if(prod[a].pk_productid==this.allOrders[i].items[h].fk_productid){
+                  name = prod[a].name;
+                }
+              }
+              this.allOrders[i].items[h].productName=name;
+          }
+          }
+        })
+
+      } else {
+        this.allOrders = undefined;
+        this.noAllOrders = true;
+      }
+    }).catch(err => {
+      console.error(err);
+      this.allOrders = undefined;
+      this.noAllOrders = true;
+    });
+  }
+
+
+
 
   formatDate(date: string) : string {
     return moment(date).format('MMMM Do YYYY, h:mm:ss a');

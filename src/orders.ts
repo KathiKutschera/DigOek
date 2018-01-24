@@ -114,8 +114,8 @@ export class Orders {
       }))
     }
   };
-  
-  
+
+
    public getOrdersByID = {
     'spec': {
       description : "Operations about Orders",
@@ -151,7 +151,7 @@ export class Orders {
       }))
     }
   };
-  
+
   public getOrdersByUsername = {
     'spec': {
       description : "Operations about Orders",
@@ -184,7 +184,7 @@ export class Orders {
     }
   };
 
-  
+
     public postOrders = {
     'spec': {
       description : "Operations about Users",
@@ -196,7 +196,7 @@ export class Orders {
       nickname : "PostOrders",
       produces : ["application/json"],
       parameters : [
-    //    swagger.params.path ("username", "UserName of User", "string"), 
+    //    swagger.params.path ("username", "UserName of User", "string"),
         swagger.params.body("body", 'Order as JSON string', "string")
       ],
       responseMessages : [
@@ -270,7 +270,7 @@ export class Orders {
         // OK
         sql = "select * from orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid ORDER BY orders.pk_orderid ";
 		    console.log ( "sql = " + sql);
-        
+
       } else {
         // only provide own data
         if (req.params.username && req.params.username != req.auth.user) {
@@ -282,12 +282,12 @@ export class Orders {
         }
       }
 		 // console.log ( "fk_username = " + fk_username);
-		 
+
 		  let params: [string | number] = [limit || this.defaultLimit, offset || 0];
 		  sql += "  LIMIT $1 OFFSET $2";
 		  this.pool
 		  .query (sql, params)
-		  .then (res => {			
+		  .then (res => {
 				 if(res.rows.length >= 1){
 					 console.log("im woring on it");
 					let lastOrderId = undefined;
@@ -296,59 +296,61 @@ export class Orders {
 					for(let i=0; i < res.rows.length; i++){
 						//	items = [];
 						 if (res.rows[i].pk_orderid != lastOrderId) {
-							jsonArray.push({ 
-									pk_orderid : res.rows[i].pk_orderid, 
+							jsonArray.push({
+									pk_orderid : res.rows[i].pk_orderid,
 									orderdate :	res.rows[i].orderdate,
-									deliverydate : res.rows[i].deliverydate, 
-									paymentstate : res.rows[i].paymentstate, 
-									paymentmethod :	res.rows[i].paymentmethod, 
+									deliverydate : res.rows[i].deliverydate,
+									paymentstate : res.rows[i].paymentstate,
+									paymentmethod :	res.rows[i].paymentmethod,
 									price :	res.rows[i].price,
 									items : [],
 										});
-							
+
 							lastOrderId = res.rows[i].pk_orderid;
 						 }
 						 let r = jsonArray.length - 1; // sicher >= 0
 						  console.log("this is r " + r);
-						  
+
 						  //CHECK
 						for(let h=0; h < jsonArray.length; h++){
 							console.log(JSON.stringify(jsonArray[h], null, 2));
 						}
 							//console.log(jsonArray.items[0] + "!!!!!!!!!!!1");
-							 jsonArray[r].items.push({ 
+							 jsonArray[r].items.push({
 								pk_fk_itemid : res.rows[i].pk_fk_itemid,
 								amount : res.rows[i].amount,
 								fk_pk_orderid : res.rows[i].fk_pk_orderid,
 								price : res.rows[i].price,
-								fk_productid : res.rows[i].fk_productid,					 
+								fk_productid : res.rows[i].fk_productid,
 							 });
-							
+
 					}
 					resolve(jsonArray);
-				}
-			 
+				} else {
+          reject("No orders found.");
+        }
+
 			//resolve (res.rows);
 		  })
 		  .catch (error => {
 			console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
 			reject (error.toString());
 		  });
-	  
-	 
+
+
     });
   }
-  
-  
+
+
    public doGetOrdersByID (req: Request, auth: Types.Auth, id: number) : Promise<Types.Order> {
      return new Promise ((resolve, reject) => {
       // req.auth, req.params.username
       if (! req.hasOwnProperty ('auth')) {
         return reject ("Not logged in");
       }
-	  
+
 	  let itemsArray = [];
-	  
+
 	  //select * from orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid where orders.pk_orderid = 1;
       let sql = "SELECT * FROM orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid where pk_orderid = $1";
       let params: [number] = [id];
@@ -367,8 +369,8 @@ export class Orders {
       });
     });
   }
-  
-  
+
+
   public doGetOrdersByUser (req: Request) : Promise<Types.Order> {
      return new Promise ((resolve, reject) => {
       // req.auth, req.params.username
@@ -378,7 +380,7 @@ export class Orders {
       // req.auth, req.params.username
       if (this.users.userIsAdmin (req)) {
         // OK
-        
+
       } else {
         // only provide own data
         if (req.params.username && req.params.username != req.auth.user) {
@@ -386,13 +388,13 @@ export class Orders {
           return;
         }
       }
-	  
+
 	  let itemsArray = [];
 	  let params = [];
 	  let sql = "SELECT * FROM orders inner join orderitems on orders.pk_orderid = orderitems.fk_pk_orderid where fk_username ='" +   req.params.username + "' ORDER BY orders.pk_orderid";
       this.pool
 		  .query (sql)
-		  .then (res => {			
+		  .then (res => {
 				 if(res.rows.length >= 1){
 					 console.log(res.rows.length);
 					let lastOrderId = undefined;
@@ -401,38 +403,40 @@ export class Orders {
 					for(let i=0; i < res.rows.length; i++){
 						//	items = [];
 						 if (res.rows[i].pk_orderid != lastOrderId) {
-							jsonArray.push({ 
-									pk_orderid : res.rows[i].pk_orderid, 
+							jsonArray.push({
+									pk_orderid : res.rows[i].pk_orderid,
 									orderdate :	res.rows[i].orderdate,
-									deliverydate : res.rows[i].deliverydate, 
-									paymentstate : res.rows[i].paymentstate, 
-									paymentmethod :	res.rows[i].paymentmethod, 
+									deliverydate : res.rows[i].deliverydate,
+									paymentstate : res.rows[i].paymentstate,
+									paymentmethod :	res.rows[i].paymentmethod,
 									price :	res.rows[i].price,
 									items : [],
 										});
-							
+
 							lastOrderId = res.rows[i].pk_orderid;
 						 }
 						 let r = jsonArray.length - 1; // sicher >= 0
 						  console.log("this is r " + r);
-						  
+
 						  //CHECK
 						for(let h=0; h < jsonArray.length; h++){
 							console.log(JSON.stringify(jsonArray[h], null, 2));
 						}
 							//console.log(jsonArray.items[0] + "!!!!!!!!!!!1");
-							 jsonArray[r].items.push({ 
+							 jsonArray[r].items.push({
 								pk_fk_itemid : res.rows[i].pk_fk_itemid,
 								amount : res.rows[i].amount,
 								fk_pk_orderid : res.rows[i].fk_pk_orderid,
 								price : res.rows[i].price,
-								fk_productid : res.rows[i].fk_productid,					 
+								fk_productid : res.rows[i].fk_productid,
 							 });
-							
+
 					}
 					resolve(jsonArray);
-				}
-			 
+				} else {
+          reject ("No orders found for that user");
+        }
+
 			//resolve (res.rows);
             })
       .catch (error => {
@@ -446,8 +450,8 @@ export class Orders {
 
 
   public doPostOrders (req: Request, auth: Types.Auth, id: number) : Promise<Types.Id> {
-	  
-	    
+
+
 	return new Promise ((resolve, reject) => {
 		  if (! req.hasOwnProperty ('auth')) {
 			return reject ("Not logged in");
@@ -477,8 +481,8 @@ export class Orders {
 				params2.push(req.body[allFieldsSql2[i]]);
 			}
 		  }
-		  
-		 // let orderdate = req.body.orderdate; 
+
+		 // let orderdate = req.body.orderdate;
 
 		  sql2 += `, fk_username) VALUES (DEFAULT, `;
 		  params2.push(req.auth.user);
@@ -489,11 +493,11 @@ export class Orders {
 			sql2 += `$${j+1}`;
 
 		  }
-			  
+
 		  sql2 += `) RETURNING pk_orderid`;
           let pk_orderid = 0;
-		  
-		  // check 
+
+		  // check
 		  console.log(sql2);
 		  console.log(JSON.stringify(params2));
 		  //insert into db
@@ -502,46 +506,46 @@ export class Orders {
             .then( res => {pk_orderid = res.rows[0].pk_orderid;
 		  console.log("ORDERID "+pk_orderid);
 		  // create query for insert into orderitems table
-		  
+
 		  let p = 0;
 		  let currentItem;
-		  
+
 		  let sql1 = "INSERT INTO orderitems(";
 		  let params1 = [];
 		  let allFieldsSql1 = ["price", "amount", "fk_productid"]
-		   
+
 		  let h = 0;
 		  let n = 0;
 
 		  let byed = [];
 		  let amount = [];
-		  
+
 		  //get item array and iterate through it
 		   if(req.body.hasOwnProperty("item")){
 			let arrayOfItems = req.body["item"];
 			for(; p < arrayOfItems.length; p++){
-				 
+
 				 // reset h, n, parameter and query so that a new query can be made for next item
 				  h=0;
 				  n=0;
 				 sql1 = "INSERT INTO orderitems(";
 				 params1 = [];
-				 
-				  
+
+
 				console.log ("ITEMS!! " + JSON.stringify(arrayOfItems[p], null, 2));
 				currentItem = arrayOfItems[p];
-				  
-				  
+
+
 				//  console.log("currentItem stelle " + p + " wert is " + currentItem[allFieldsSql1[p]] + "tag ist " + `${allFieldsSql1[p]}`);
-				
+
 				//add orderID as foreignkey
                 //got the id after the insert of the order. Don't change it!
-				params1.push(pk_orderid);  
+				params1.push(pk_orderid);
 				sql1 += `fk_pk_orderid, pk_fk_itemid,`;
                 params1.push(p+1);
 				n++;
-				 
-				 
+
+
 				  for(; h < allFieldsSql1.length; h++){
 					if(currentItem.hasOwnProperty(allFieldsSql1[h])){
 					 if( allFieldsSql1[h] == "fk_productid" ){
@@ -552,18 +556,18 @@ export class Orders {
 							amount.push(currentItem[allFieldsSql1[h]]);
 							console.log ("pushed to amount " + currentItem[allFieldsSql1[h]]);
 						}
-						
+
 						if(h != 0){
 							sql1 += `, `;
 						}
 						console.log("TAG is " + allFieldsSql1[h] + " and h is " + h + "and value is " + currentItem[allFieldsSql1[h]]);
 						 sql1 += ` ${allFieldsSql1[h]}`;
-						params1.push(currentItem[allFieldsSql1[h]]);  
+						params1.push(currentItem[allFieldsSql1[h]]);
 						 n++;
-						 
+
 					}
 				  }
-				  
+
 				  //add $[nr] in VALUES()
 				  sql1 += `) VALUES (`;
 				  for(let j = 0; j < params1.length; j++){
@@ -572,30 +576,30 @@ export class Orders {
 					}
 					sql1 += `$${j+1}`;
 				  }
-					  
+
 				  sql1 += `) `;
-				  
+
 				  // check current status of query sql1
 				  console.log(sql1);
 				  console.log(JSON.stringify(params1));
-					
+
 				// make insert query on DB for the current item
 				   this.pool
 				  .query (sql1, params1)
 				  .catch (error => {
 					console.error (sql1 + " with params "+JSON.stringify (params1) + ": " + error.toString());
 					reject (error.toString());
-				  });	
-                  
-                  
+				  });
+
+
 
 			 }
-			 
-			  
-		   //Update available products   
+
+
+		   //Update available products
 			 i = 0;
 			let base = [];
-						
+
 			for(;i < byed.length; i++){
 				let boughtProduct = byed[i];
 				let boughtAmount = amount[i];
@@ -604,31 +608,31 @@ export class Orders {
 			  .query (sql)
 			  .then (res => {
 					let val = res.rows[0].amountavailable - boughtAmount;
-					let sql3 = "UPDATE products SET amountavailable = " + 
-					val + 
+					let sql3 = "UPDATE products SET amountavailable = " +
+					val +
 					" WHERE pk_productid = "+ boughtProduct +";";
 					console.log(sql3);
-				  
+
 					this.pool.query (sql3)
-						.then (resolve ({"pk_username": req.auth.user}))	
+						.then (resolve ({"pk_username": req.auth.user}))
 					  .catch ( error => {
 						console.error(sql3 + ": " + error.toString());
 						reject (error.toString());
 					  });
-			  
+
 			  })
 			  .catch (error => {
 				console.error(sql + ": " + error.toString());
 				reject (error.toString());
 			  });
 			}
-		   
-		   
+
+
 		  }
 		  else {
-			  console.log ("no ITEMS!! ");
+			  reject("Order hast no items");
 		  }
-		  		 
+
 
 		})
 
@@ -638,28 +642,28 @@ export class Orders {
 			});
     });
     }
-			
 
-    
+
+
     public doDeleteOrders (req: Request) : Promise<Types.Count> {
       return new Promise ((resolve, reject) => {
         if (! req.hasOwnProperty ('auth')) {
 			return reject ("Not logged in");
 			}
-			
+
 		// query status of order: order can only be deleted if delivery date is null
 			//TODO let sql = "DELETE FROM orders where pk_username = $1 AND (SELECT COUNT(paymentstate) FROM users JOIN orders ON (users.pk_username = orders.fk_username) WHERE users.pk_username = $1 and paymentstate='open') = 0 RETURNING *";
-      //oben beschriebene Lösung ignoriert 
-      //bereits vom availableAmount abgezogene Güter, daher: 
-		
+      //oben beschriebene Lösung ignoriert
+      //bereits vom availableAmount abgezogene Güter, daher:
+
           let sql = "DELETE FROM orders where pk_orderid = $1 AND deliverydate IS NULL RETURNING *";
 					let params: [number] = [req.params.id];
 					this.pool
 					.query (sql, params)
 					.then (res => {
 						if(res.rows.length == 1){
-              //Dieser Wert wurde gelöscht --> 
-              //Suchen aller dazugehörigen OrderItems, 
+              //Dieser Wert wurde gelöscht -->
+              //Suchen aller dazugehörigen OrderItems,
               //hinzufügen d. Produktanzahl
               //und löschen d. Items
               let sql2 = "SELECT fk_productid, amount FROM "
@@ -685,7 +689,7 @@ export class Orders {
                   console.error(sql4 + ": " + error.toString());
                   reject (error.toString());
                   });
-              })					
+              })
               .catch (error => {
               console.error(sql2 + " with params "+JSON.stringify (params)+": " + error.toString());
               reject (error.toString());
@@ -700,19 +704,19 @@ export class Orders {
 					console.error(sql + " with params "+JSON.stringify (params)+": " + error.toString());
 					reject (error.toString());
 					});
-			
+
 		});
-		
+
     }
 
-    public doPutOrdersByID(req:Request, 
+    public doPutOrdersByID(req:Request,
       auth:Types.Auth, id:number){
         return new Promise ((resolve, reject) => {
           if (! req.hasOwnProperty ('auth')) {
             return reject ("Not logged in");
           }
-	
-/*	
+
+/*
 		 // create query for update the orders table
 		  let sql2 = "UPDATE orders SET";
 		  let params2 = [];
@@ -730,36 +734,36 @@ export class Orders {
 				//params2.push(req.body[allFields[i]]);
 			}
 		  }
-		  
+
 		  sql += "WHERE pk_orderid = " + id;
-				  
-		  // check 
+
+		  // check
 		  console.log(sql2);
 		  //insert into db
 		  this.pool
 			.query (sql2)
-            .then( res => {pk_orderid = res.rows[0].pk_orderid; 
-		  
+            .then( res => {pk_orderid = res.rows[0].pk_orderid;
+
 
 	//payment logic
 		  let priceDifference; // if negative, the user has a debit; if poitive, the user must be refund
-		  
+
 		  if(req.body.hasOwnProperty("price")){
 			  let sqlGetOldPrice = "SELECT price FROM orders WHERE orderid = " + id;
 			  this.pool
 				.query (sqlGetOldPrice)
 				.then( res => {let val = res.rows[0].price - req.body["price"];
-					
-					let sql3 = "UPDATE products SET amountavailable = " + 
-					val + 
+
+					let sql3 = "UPDATE products SET amountavailable = " +
+					val +
 					" WHERE pk_productid = "+ boughtProduct +";";
 				});
-		  
+
 		  }
-		*/  
-		  
+		*/
+
 		  //// Bernhard:
-		  
+
             let sql = "UPDATE orders SET paymentstate = '"
           + req.params.paymentstate + "', paymentmethod = '"
           + req.params.paymentmethod + "'";
@@ -780,7 +784,7 @@ export class Orders {
             reject (error.toString());
           })
           .then (resolve (id));
-        });  
+        });
       }
-  
+
   }
