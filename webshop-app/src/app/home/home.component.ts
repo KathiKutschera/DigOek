@@ -28,31 +28,61 @@ export class HomeComponent implements OnInit {
   }
 
 
-  addProductToShoppingCart(){
-    // TODO: something like these checks
+  addProductToShoppingCart(p : types.Product){
+    console.log("wuhu");
+    console.log("ordered Amount: " + p.orderdAmount);
+    console.log("available Amount: " + p.amountavailable);
 
-     for(var i = 0; i < this.products.length; i++) {
-      let amount2 = parseInt((<HTMLInputElement>document.getElementById(`${this.products[i].pk_productid}`)).value);
-      (<HTMLInputElement>document.getElementById(`${this.products[i].pk_productid}`)).value = '';
-      console.log("Wanted Product: " + this.products[i].pk_productid + ", Amount: " + amount2);
-      
-       if (!isNaN(amount2)){
-         if (this.products[i].amountavailable < amount2){
-           window.alert(`There is a negative amount of ${this.products[i].name}. Therefore, your order will not be processed.`);
-           return;
-         }
-         if (this.products[i].amountavailable >= amount2) {
-          console.log("Gotten Product: " + this.products[i].pk_productid);
-            this.webshopService.postCartItem(amount2, this.products[i].price, this.webshopService.getUsername(), this.products[i].pk_productid)
-            .catch(err => {
-              console.error(err);
-            });
-           
-         }
-       }
-     }
+    if(isNaN(p.orderdAmount) || (p.orderdAmount < 0 )) {
+      window.alert(`Sorry, but ${p.amountavailable} isn't a valid amount to order. Please fix that and try again.`);
+      return;
+    }
+    if(p.orderdAmount > p.amountavailable){
+      console.log("Not enough pieces available.")
+      window.alert(`Sorry, but we only have ${p.amountavailable} pieces of ${p.name}. Please update your wanted amount of product ${p.name} and try it again.`);
+      return;
+    }
 
-    // TODO: add item to shopping cart
+    this.webshopService.postCartItem(p).then((data) => {
+      if(data) {
+        // seems like it worked fine
+        window.alert(`Added ${p.orderdAmount} pieces of ${p.name} to your shopping cart.`);
+
+      }
+    }).catch(err => {
+      console.error(err);
+      window.alert(`Sorry, but something went wrong. Please try again.`);
+    });
+
+
+
+
+    //
+    //
+    // // TODO: something like these checks
+    //
+    //  for(var i = 0; i < this.products.length; i++) {
+    //   let amount2 = parseInt((<HTMLInputElement>document.getElementById(`${this.products[i].pk_productid}`)).value);
+    //   (<HTMLInputElement>document.getElementById(`${this.products[i].pk_productid}`)).value = '';
+    //   console.log("Wanted Product: " + this.products[i].pk_productid + ", Amount: " + amount2);
+    //
+    //    if (!isNaN(amount2)){
+    //      if (this.products[i].amountavailable < amount2){
+    //        window.alert(`There is a negative amount of ${this.products[i].name}. Therefore, your order will not be processed.`);
+    //        return;
+    //      }
+    //      if (this.products[i].amountavailable >= amount2) {
+    //       console.log("Gotten Product: " + this.products[i].pk_productid);
+    //         this.webshopService.postCartItem(amount2, this.products[i].price, this.webshopService.getUsername(), this.products[i].pk_productid)
+    //         .catch(err => {
+    //           console.error(err);
+    //         });
+    //
+    //      }
+    //    }
+    //  }
+    //
+    // // TODO: add item to shopping cart
 
 
   }
