@@ -100,7 +100,7 @@ export class ShoppingcartComponent implements OnInit {
   process():void{
     console.log(this.totalCosts);
     let order:types.Order = {"pk_orderid" : 0, "orderdate":(new Date())+ "", "price" : this.totalCosts, "deliverydate" : null, 
-      "paymentstate":null, "paymentmethod":null};
+      "paymentstate" : "open", "paymentmethod":null};
     order.items = new Array(this.cart.length);
    for(var i = 0; i < this.cart.length; i++){
     order.items[i] = {"pk_fk_itemid":0, "price":this.cart[i].price, "amount":this.cart[i].amount, 
