@@ -12,6 +12,8 @@ import { Router } from "@angular/router";
 export class ShoppingcartComponent implements OnInit {
 
   cart : types.CartItems[];
+  errorMessage : string = undefined;
+  successMessage : string = undefined;
 
   constructor(private webshopService: WebshopService,
     private router: Router) { }
@@ -51,6 +53,41 @@ export class ShoppingcartComponent implements OnInit {
       });
 
 
+  }
+
+  saveChanges(p:number): void {
+    
+    this.webshopService.putCartItem(this.cart[p]).then((data) => {
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data){
+        // seems like it worked
+        this.successMessage = "Successfully updated your shoppingCart."
+        // this.user = undefined;
+        return;
+      } else {
+        // should not happen...
+        this.errorMessage = "We are sorry, but an error occured. Please try again later.";
+      }
+    }).catch(err => {
+      console.error(err);
+      this.errorMessage = "";
+      this.errorMessage.concat("We are sorry, but an error occurred: ", err);
+
+    });
+  }
+
+  deleteItem(p : number): void {
+    this.webshopService.deleteCartItem(this.cart[p])
+    .then((data) => {
+      console.log("data: " + JSON.stringify(data, null, 2));
+      if(data){
+        // seems like it worked
+        this.successMessage = `Successfully removed this item.`;
+      }
+    }).catch(err => {
+      console.error(err);
+      this.errorMessage = "Element not removed. This may be because of a server error.";
+    });
   }
 
 }

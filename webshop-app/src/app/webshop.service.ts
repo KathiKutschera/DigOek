@@ -267,6 +267,31 @@ export class WebshopService {
     .catch(this.handleError);
   }
 
+  putCartItem(p:types.CartItems):Promise<types.CartItems[]>{
+    console.log("send: " + p);
+    return this.http.put(`${this.url}/rest/cart/${p.pk_cartid}`, p,{
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
+  deleteCartItem(p : types.CartItems) : Promise<types.Product> {
+    return this.http.delete(`${this.url}/rest/cart/${p.pk_cartid}`, {
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + btoa(`${this.username}:${this.password}`))
+    })
+    .toPromise()
+    .then((response) => {
+      console.log(response);
+      return response;
+    })
+    .catch(this.handleError);
+  }
+
 
   private handleError(error: any): Promise<any> {
     console.error('An error occurred', error);

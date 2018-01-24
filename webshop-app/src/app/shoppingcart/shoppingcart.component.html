@@ -1,6 +1,20 @@
 <div class="container-fluid" *ngIf="cart">
     <p>
         Der derzeitige Einkaufswagen
+
+        <br *ngIf="errorMessage"/>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">{{errorMessage}}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="errorMessage = ''">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <br *ngIf="successMessage"/>
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="successMessage">{{successMessage}}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="successMessage = ''">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        
         <div *ngFor="let cartItem of cart; index as i">
             <button type="button" name={{cartItem.pk_cartid}}
             class="list-group-item list-group-item-action"
@@ -8,23 +22,30 @@
 
                 {{cartItem.productName}}
             </button>
-           <div *ngIf="cartItem.showDetails">
+           <form *ngIf="cartItem.showDetails">
                 <br/>
-                <!--<p *ngIf="cartItem.productName">
-                <b>Item: </b>
-                {{cartItem.productName}}
-                </p>-->
+
                 <p>
-                <b>Preis: </b>
+                <div class="form-group">
+                <label><b>Preis: </b></label>
                 {{cartItem.price}}
-                </p>
+                </div>
+                
+
                 <p>
-                <b>Menge: </b>
-                {{cartItem.amount}}
-                </p>
+                <div class="form-group">
+                <label><b>Menge</b></label>
+                <input type="text" class="form-control" name="amount" [(ngModel)]="cartItem.amount">
+                </div>
 
 
-            </div>
+                <button type="button" class="btn btn-lg btn-block btn-success" (click)="saveChanges(i)">Save Changes
+                  <span><i class="fa fa-floppy-o" aria-hidden="true"></i></span>
+                </button>
+                <button type="button" class="btn btn-lg btn-block btn-danger" (click)="deleteItem(i)">Delete Item
+                  <span><i class="fa fa-user-times" aria-hidden="true"></i></span>
+                </button>
+            </form>
 
         </div>
 
