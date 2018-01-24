@@ -350,6 +350,9 @@ export class ProfileComponent implements OnInit {
       this.errorMessageAddProd = "The field 'VAT Rate' is a required field. Please fix this and try again."
       return;
     }
+    if(!this.newProduct.fk_groupid) {
+      this.newProduct.fk_groupid = 5;
+    }
 
     this.webshopService.postProduct(this.newProduct).then((data) => {
       console.log("data: " + JSON.stringify(data, null, 2));
